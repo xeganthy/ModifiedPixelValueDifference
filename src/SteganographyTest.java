@@ -96,7 +96,7 @@ public class SteganographyTest {
 	public static void embedHiddenMessage(String message, int[][] stegoGrid, int[] rangeTable) {
 		//leave trace for which type of range table was used
 		//divide grid into blocks
-		//start LSB + PVD
+		//start LSB + PVDD
 	}
 }
 
