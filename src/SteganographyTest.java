@@ -4,29 +4,32 @@ import javax.imageio.ImageIO;
 import java.io.File;
 public class SteganographyTest {
 	public static void main(String[] args) {
-		int[][] newGrid512 = new int[512][512];
+		int[][] stegoGrid = new int[512][512];
 		//TODO RANGE TABLE 1
 		int[] rangeTable1 = null;
 		//TODO RANGE TABLE 2 
 		int[] rangeTable2 = null;
 		SteganographyTest image = new SteganographyTest();
-		newGrid512 = getImagePixelValues(image.getImage("lena_gray.bmp"), newGrid512); 		//create new grid
+		stegoGrid = getImagePixelValues(image.getImage("lena_gray.bmp"), stegoGrid); 		//create new grid
 		//determine if image is jagged or smooth
-		if(isSmooth(newGrid512)) {
+		replaceLeastSignificantBit(stegoGrid[0][3], 3, 2);
+		if(isSmooth(stegoGrid)) {
 			//embed using smooth table
-			embedHiddenMessage("test", newGrid512, rangeTable1);
+			stegoGrid[0][0] = (byte) (stegoGrid[0][0] & ~(1 << 0)) & 0xff;					//notice i use bitwise , not convert to binary
+			embedHiddenMessage("test", stegoGrid, rangeTable1);
 		} else {
 			//embed using edgy table
-			embedHiddenMessage("test", newGrid512, rangeTable2);
+			stegoGrid[0][0] = (byte) (stegoGrid[0][0] | (1 << 0)) & 0xff;					//here as well.
+			embedHiddenMessage("test", stegoGrid, rangeTable2);
 		}
 		
-		createStegoImage(newGrid512);
+		createStegoImage(stegoGrid);
 	}
-	public static boolean isSmooth(int[][] pixelGrid) { //true if smooth, else image is edgy
+	public static boolean isSmooth(int[][] pixelGrid) { 									//true if smooth, else image is edgy
 		int height = pixelGrid.length;
 		int width = pixelGrid[0].length;
 		int edgePixel = 0, smoothPixel = 0;
-		final int THRESHOLD = 3;
+		final int THRESHOLD = 3;															//TODO someone update this
 		
 		for(int i = 0; i < height; i++) {
 			for(int j = 0; j < width-1; j++) {
@@ -82,7 +85,6 @@ public class SteganographyTest {
 									(pixelDec << 0)); 
 			}
 		}
-		System.out.println(Integer.toBinaryString(image.getRGB(0,0)));
 		File imageFile = new File("Sample.bmp");
 		try {
 			ImageIO.write(image, "bmp", imageFile);
@@ -93,15 +95,53 @@ public class SteganographyTest {
 		
 	}
 	//TODO File na yung i-input, instead na string
+	//I do not convert the integer value of the pixel
+	//rather, I just use the bitwise operations like <<, >> and the likes.
+	
+	//***READ THIS*******READ THIS*******READ THIS****//
+	//i don't knwo kung saan mag sta-start sa pag block, kasi yung pixel 1 won't be compared 
+	//	to pixel 2 bc it contains info about the image eh. this will make the pixel comparisons
+	// 	odd. may isang pixel na hindi ma cocompare, so ang workaround for this (as of now) is
+	// 	to ignore the first 2 pixels.
 	public static void embedHiddenMessage(String message, int[][] stegoGrid, int[] rangeTable) {
-		//leave trace for which type of range table was used
-		//divide grid into blocks
-		//start LSB + PVDD
+		//divide grid into blocks <-- probably won't be using this
+		
+		//start LSB + PVD
+		for(int i = 0; i < stegoGrid.length; i = i + 2) {
+			for(int j = 0; j < stegoGrid[0].length; j = j + 2) {
+				if(!(i == 0 && j == 0) || !(i == 0 && j == 1)) { 				//just to skip the first two pixels
+					int firstBinaryPixel = stegoGrid[i][j];
+					int secondBinaryPixel = stegoGrid[i][j+1];
+					//use LSB
+					int firstEmbeddedPixel = replaceLeastSignificantBit
+								(firstBinaryPixel, 3, 7); 						//FIND A WAY TO GET BITS (gawa ng object)
+				}
+			}
+		}
+		
+	}
+	
+	public static int replaceLeastSignificantBit(int pixel, int bitsToReplace, int toEmbed) {
+		//make the bits 0
+		int modifiedPixel = pixel;
+		for(int i = 0; i <= bitsToReplace; i++) {
+			modifiedPixel = (byte) (modifiedPixel & ~(1 << i)) & 0xff;
+		}
+		System.out.println(Integer.toBinaryString(modifiedPixel));
+		modifiedPixel = ((byte) modifiedPixel | (byte)toEmbed)& 0xff ; 
+		System.out.println(Integer.toBinaryString(modifiedPixel));
+		return modifiedPixel;
 	}
 }
 
 
 /***************************************FOR TESTING, PLEASE IGNORE******************************
+System.out.println("skipped pixel["+i+"]["+j+"]");
+System.out.println("pixel["+i+"]["+j+"] vs pixel["+(i)+"]["+(j+1)+"]");
+System.out.println("Before");
+		System.out.println(Integer.toBinaryString(newGrid512[0][0]));
+		System.out.println(Integer.toBinaryString(newGrid512[0][1]));
+		System.out.println("After: "+isSmooth(newGrid512));
 
 int blue = image.getRGB(0,0) & 0xff;
 int green = (image.getRGB(0,0) & 0xff00) >> 8;
