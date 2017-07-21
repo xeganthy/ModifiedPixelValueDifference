@@ -27,12 +27,11 @@ public class SteganographyTest {
 		final int THRESHOLD = 3;
 		
 		for(int i = 0; i < height; i++) {
-			for(int j = 0; j < width; j++) {
+			for(int j = 0; j < width-1; j++) {
 				if(Math.abs(pixelGrid[i][j] - pixelGrid[i][j+1]) > THRESHOLD) 
 					edgeBlock++;
 				else
 					smoothBlock++;
-				
 			}
 		}
 		
