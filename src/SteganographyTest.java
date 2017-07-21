@@ -14,8 +14,10 @@ public class SteganographyTest {
 		//determine if image is jagged or smooth
 		if(isSmooth(newGrid512)) {
 			//embed using smooth table
+			embedHiddenMessage("test", newGrid512, rangeTable1);
 		} else {
 			//embed using edgy table
+			embedHiddenMessage("test", newGrid512, rangeTable2);
 		}
 		
 		createStegoImage(newGrid512);
@@ -23,19 +25,19 @@ public class SteganographyTest {
 	public static boolean isSmooth(int[][] pixelGrid) { //true if smooth, else image is edgy
 		int height = pixelGrid.length;
 		int width = pixelGrid[0].length;
-		int edgeBlock = 0, smoothBlock = 0;
+		int edgePixel = 0, smoothPixel = 0;
 		final int THRESHOLD = 3;
 		
 		for(int i = 0; i < height; i++) {
 			for(int j = 0; j < width-1; j++) {
 				if(Math.abs(pixelGrid[i][j] - pixelGrid[i][j+1]) > THRESHOLD) 
-					edgeBlock++;
+					edgePixel++;
 				else
-					smoothBlock++;
+					smoothPixel++;
 			}
 		}
 		
-		if(edgeBlock > smoothBlock) {
+		if(edgePixel > smoothPixel) {
 			return false;
 		} else {
 			return true;
@@ -89,6 +91,12 @@ public class SteganographyTest {
 			e.printStackTrace();
 		}
 		
+	}
+	//TODO File na yung i-input, instead na string
+	public static void embedHiddenMessage(String message, int[][] stegoGrid, int[] rangeTable) {
+		//leave trace for which type of range table was used
+		//divide grid into blocks
+		//start LSB + PVD
 	}
 }
 
