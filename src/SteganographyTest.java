@@ -6,16 +6,24 @@ public class SteganographyTest {
 	public static void main(String[] args) {
 		int[][] stegoGrid = new int[512][512];
 		//TODO RANGE TABLE 1
-		int[] rangeTable1 = null;
+		//ang format ng table is like this: (example of range table ni khodae & Faez 'to)
+		/******************************
+		 *RANGE	:	R1	R2	R3	R4	Rn 
+		 *Lower	:	0	8	16	32	64
+		 *Upper	:	7	15	31	63	255
+		 ******************************/
+		int[][] rangeTable1 = 	{{0,8,16,32,64},
+								 {7,15,31,63,255}};
 		//TODO RANGE TABLE 2 
-		int[] rangeTable2 = null;
+		int[][] rangeTable2 = 	{{0,8,16,32,64},
+				 				 {7,15,31,63,255}};
 		SteganographyTest image = new SteganographyTest();
 		stegoGrid = getImagePixelValues(image.getImage("lena_gray.bmp"), stegoGrid); 		//create new grid
 		//determine if image is jagged or smooth
 		replaceLeastSignificantBit(stegoGrid[0][3], 3, 2);
 		if(isSmooth(stegoGrid)) {
 			//embed using smooth table
-			stegoGrid[0][0] = (byte) (stegoGrid[0][0] & ~(1 << 0)) & 0xff;					//notice i use bitwise , not convert to binary
+			stegoGrid[0][0] = (byte) (stegoGrid[0][0] & ~(1 << 0)) & 0xff;					//notice i used bitwise operations, not convert to binary
 			embedHiddenMessage("test", stegoGrid, rangeTable1);
 		} else {
 			//embed using edgy table
@@ -81,7 +89,7 @@ public class SteganographyTest {
 			for(int j = 0; j < pixelValueArray[0].length; j++) {
 				int pixelDec = pixelValueArray[i][j];
 				image.setRGB(i, j,  (pixelDec << 16) | 							//shift the pixels according to their bit position
-									(pixelDec << 8)  | 
+									(pixelDec << 8)  | 							//same values on 0-7, 8-15, 16-23
 									(pixelDec << 0)); 
 			}
 		}
@@ -103,7 +111,7 @@ public class SteganographyTest {
 	//	to pixel 2 bc it contains info about the image eh. this will make the pixel comparisons
 	// 	odd. may isang pixel na hindi ma cocompare, so ang workaround for this (as of now) is
 	// 	to ignore the first 2 pixels.
-	public static void embedHiddenMessage(String message, int[][] stegoGrid, int[] rangeTable) {
+	public static void embedHiddenMessage(String message, int[][] stegoGrid, int[][] rangeTable) {
 		//divide grid into blocks <-- probably won't be using this
 		
 		//start LSB + PVD
@@ -114,23 +122,42 @@ public class SteganographyTest {
 					int secondBinaryPixel = stegoGrid[i][j+1];
 					//use LSB
 					int firstEmbeddedPixel = replaceLeastSignificantBit
-								(firstBinaryPixel, 3, 7); 						//FIND A WAY TO GET BITS (gawa ng object)
+								(firstBinaryPixel, 3, Integer.parseInt(MessageHelper.getSecretBits(3), 2)); 						
+					int diff1 = firstBinaryPixel - secondBinaryPixel;
+					
+					int index = locateTableRange(diff1, rangeTable);
+					
+					int secretBits = (int)Math.round(	
+							Math.log((rangeTable[1][index]-rangeTable[0][index]) //log2(x) = Math.log(x)/Math.log(2)
+									/ Math.log(2)));  							 //speed of this can be improved
+					
+					
+					int newDiff1 = 2 /*getSecretBits() +  rangeTable[1][index] */;
+					
 				}
 			}
 		}
 		
 	}
 	
+	
 	public static int replaceLeastSignificantBit(int pixel, int bitsToReplace, int toEmbed) {
 		//make the bits 0
 		int modifiedPixel = pixel;
 		for(int i = 0; i <= bitsToReplace; i++) {
-			modifiedPixel = (byte) (modifiedPixel & ~(1 << i)) & 0xff;
+			modifiedPixel = (byte) (modifiedPixel & ~(1 << i)) & 0xff; 			//make 3 LSB 0
 		}
 		System.out.println(Integer.toBinaryString(modifiedPixel));
 		modifiedPixel = ((byte) modifiedPixel | (byte)toEmbed)& 0xff ; 
 		System.out.println(Integer.toBinaryString(modifiedPixel));
 		return modifiedPixel;
+	}
+	
+	public static int locateTableRange(int diff, int[][] rangeTable) {
+		int index = 0;
+		
+		
+		return index;
 	}
 }
 
