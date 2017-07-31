@@ -1,0 +1,8 @@
+//embedding
+	//leave clue in first pixel about the range table being used
+	binaryImage = Convert coverImage[1][1] to binary
+	If edge > smooth
+		Change rightmost bit of binaryImage to 1
+	Else change rightmost bit of binaryImage to 0
+
+
