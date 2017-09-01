@@ -1,10 +1,15 @@
 import java.awt.image.BufferedImage;
 import java.io.IOException;
 import javax.imageio.ImageIO;
+import javax.swing.plaf.synth.SynthSeparatorUI;
+
 import java.io.File;
 public class SteganographyTest {
+	
+	public static int[][] stegoGrid = new int[512][512];
+	static MessageHelper secretMessage = new MessageHelper("test.txt");					//Scan Message
+	
 	public static void main(String[] args) {
-		int[][] stegoGrid = new int[512][512];
 		//TODO RANGE TABLE 1
 		//ang format ng table is like this: (example of range table ni khodae & Faez 'to)
 		/******************************
@@ -17,6 +22,7 @@ public class SteganographyTest {
 		//TODO RANGE TABLE 2 
 		int[][] rangeTable2 = 	{{0,8,16,32,64},
 				 				 {7,15,31,63,255}};
+		
 		SteganographyTest image = new SteganographyTest();
 		stegoGrid = getImagePixelValues(image.getImage("lena_gray.bmp"), stegoGrid); 		//create new grid
 		//determine if image is jagged or smooth
@@ -102,37 +108,25 @@ public class SteganographyTest {
 		}
 		
 	}
-	//TODO File na yung i-input, instead na string
-	//I do not convert the integer value of the pixel
-	//rather, I just use the bitwise operations like <<, >> and the likes.
-	
-	//***READ THIS*******READ THIS*******READ THIS****//
-	//i don't knwo kung saan mag sta-start sa pag block, kasi yung pixel 1 won't be compared 
-	//	to pixel 2 bc it contains info about the image eh. this will make the pixel comparisons
-	// 	odd. may isang pixel na hindi ma cocompare, so ang workaround for this (as of now) is
-	// 	to ignore the first 2 pixels.
 	public static void embedHiddenMessage(String message, int[][] stegoGrid, int[][] rangeTable) {
-		//divide grid into blocks <-- probably won't be using this
-		
-		//start LSB + PVD
-		for(int i = 0; i < stegoGrid.length; i = i + 2) {
-			for(int j = 0; j < stegoGrid[0].length; j = j + 2) {
-				if(!(i == 0 && j == 0) || !(i == 0 && j == 1)) { 				//just to skip the first two pixels
-					int firstBinaryPixel = stegoGrid[i][j];
-					int secondBinaryPixel = stegoGrid[i][j+1];
-					//use LSB
-					int firstEmbeddedPixel = replaceLeastSignificantBit
-								(firstBinaryPixel, 3, Integer.parseInt(MessageHelper.getSecretBits(3), 2)); 						
-					int diff1 = firstBinaryPixel - secondBinaryPixel;
-					
-					int index = locateTableRange(diff1, rangeTable);
-					
-					int secretBits = (int)Math.round(	
-							Math.log((rangeTable[1][index]-rangeTable[0][index]) //log2(x) = Math.log(x)/Math.log(2)
-									/ Math.log(2)));  							 //speed of this can be improved
-					
-					
-					int newDiff1 = 2 /*getSecretBits() +  rangeTable[1][index] */;
+		int counter = 0;
+		for(int i = 0; i < stegoGrid.length; i++) {
+			for(int j = 0; j < stegoGrid[0].length - 2; j = j + 2) {
+				if(!(i == 0 && j == 0) || !(i == 0 && j == 1) || !(i == 0 && j == 2)) { 				//just to skip the first three pixels
+					embedTo3PixelBlock(stegoGrid[i][j], stegoGrid[i][j + 1], stegoGrid[i][j + 2], rangeTable);
+//					//use LSB
+//					int firstEmbeddedPixel = replaceLeastSignificantBit
+//								(firstBinaryPixel, 3, Integer.parseInt(MessageHelper.getSecretBits(3), 2)); 						
+//					int diff1 = firstBinaryPixel - secondBinaryPixel;
+//					
+//					int index = locateTableRange(diff1, rangeTable);
+//					
+//					int secretBits = (int)Math.round(	
+//							Math.log((rangeTable[1][index]-rangeTable[0][index]) //log2(x) = Math.log(x)/Math.log(2)
+//									/ Math.log(2)));  							 //speed of this can be improved
+//					
+//					
+//					int newDiff1 = 2 /*getSecretBits() +  rangeTable[1][index] */;
 					
 				}
 			}
@@ -140,7 +134,49 @@ public class SteganographyTest {
 		
 	}
 	
-	
+	public static void embedTo3PixelBlock(int leftPixel, int basePixel, int rightPixel, int[][] rangeTable){
+		int basePixel3LSB = (byte) (1 & ((1 << 3) - 1)); 
+		int embeddedBasePixel = replaceLeastSignificantBit
+				(basePixel, 3, Integer.parseInt(secretMessage.getSecretBits(3), 2));
+		int secretMessageLSB = Integer.parseInt(secretMessage.peekSecretBits(3));
+		int baseDifference = basePixel3LSB - secretMessageLSB;
+		if(baseDifference > Math.pow(2, 3) && (basePixel + Math.pow(2, 3) >= 0)) {
+			embeddedBasePixel += Math.pow(2, 3); 
+		} else if(baseDifference < (-1 * Math.pow(2,3)) && (basePixel - Math.pow(2, 3) <= 255)) {
+			embeddedBasePixel -= Math.pow(2,3);
+		} else {
+			//do nothing;
+		}
+		
+		int diffLeft = Math.abs(embeddedBasePixel - leftPixel);
+		int diffRight = Math.abs(embeddedBasePixel - rightPixel);
+		
+		int leftDiffRangeIndex = locateTableRange(diffLeft, rangeTable);
+		int rightDiffRangeIndex = locateTableRange(diffRight, rangeTable);
+		
+		int embeddableBitsLeft = rangeTable[3][leftDiffRangeIndex];		//TODO Tj bits embeddable on a speciifc range
+		int embeddableBitsRight = rangeTable[3][rightDiffRangeIndex];
+		
+		int newDiffLeft = rangeTable[1][leftDiffRangeIndex] 
+				+ Integer.parseInt(secretMessage.getSecretBits(embeddableBitsLeft));
+		int newDiffRight = rangeTable[1][rightDiffRangeIndex] 
+				+ Integer.parseInt(secretMessage.getSecretBits(embeddableBitsRight));
+		
+		int leftPixelTemp1 = embeddedBasePixel + newDiffLeft;
+		int leftPixelTemp2 = embeddedBasePixel - newDiffLeft;
+		int rightPixelTemp1 = embeddedBasePixel + newDiffRight;
+		int rightPixelTemp2 = embeddedBasePixel - newDiffRight;
+		
+		int embeddedLeftPixel = (Math.abs(leftPixel - leftPixelTemp1) < Math.abs(leftPixel - leftPixelTemp2)) ? 
+								 leftPixelTemp1 : leftPixelTemp2;
+		int embeddedRightPixel = (Math.abs(rightPixel - rightPixelTemp1) < Math.abs(rightPixel - rightPixelTemp2)) ?
+								  rightPixelTemp1 : rightPixelTemp2;
+		
+		//replace old val with new val
+		basePixel = embeddedBasePixel;
+		leftPixel = embeddedLeftPixel;
+		rightPixel = embeddedRightPixel;
+	}
 	public static int replaceLeastSignificantBit(int pixel, int bitsToReplace, int toEmbed) {
 		//make the bits 0
 		int modifiedPixel = pixel;
@@ -150,6 +186,7 @@ public class SteganographyTest {
 		System.out.println(Integer.toBinaryString(modifiedPixel));
 		modifiedPixel = ((byte) modifiedPixel | (byte)toEmbed)& 0xff ; 
 		System.out.println(Integer.toBinaryString(modifiedPixel));
+		
 		return modifiedPixel;
 	}
 	

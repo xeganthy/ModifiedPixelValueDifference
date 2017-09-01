@@ -9,6 +9,15 @@ import java.io.OutputStreamWriter;
 public class MessageHelper {
 	private static BitSet bitset = null;
 	private static int currentBit = 0;
+	
+	MessageHelper(String filename) {
+		try {
+			messageToBinary(filename);
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+	}
 	public static void messageToBinary(String fileName) throws IOException {
 		String binaryMessage = "";
 		char[] messChar = getFile(fileName);
@@ -34,11 +43,6 @@ public class MessageHelper {
 		try (BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(
 				new FileOutputStream("convertedMessage.txt"), "utf-8"))) {
 			writer.write(binaryMessage);
-			writer.newLine();
-			writer.newLine();
-			writer.newLine();
-			writer.newLine();
-			writer.write("\n"+bitsetS);
 			writer.flush();
 		}
 		
@@ -68,7 +72,7 @@ public class MessageHelper {
 			}
 	}
 	
-	public static String getSecretBits(int numberToRead) {
+	public String getSecretBits(int numberToRead) {
 		int lastBit = currentBit + numberToRead;
 		String secretBits = "";
 		for(int i = currentBit; i < lastBit; i++) {
@@ -79,19 +83,22 @@ public class MessageHelper {
 			}
 		}
 		currentBit = lastBit;
-		System.out.println(currentBit);
+		System.out.println(secretBits);
 		return secretBits;
 	}
 	
-	public static void main(String[] args) {
-		try {
-			messageToBinary("test.txt");
-			System.out.println(getSecretBits(5));
-			System.out.println(getSecretBits(3));
-			
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+	public String peekSecretBits(int numberToRead) {
+		int lastBit = currentBit + numberToRead;
+		String secretBits = "";
+		
+		for(int i = currentBit; i < lastBit; i++) {
+			if(bitset.get(i)) {
+				secretBits += '1';
+			} else {
+				secretBits += '0';
+			}
 		}
+		
+		return secretBits;
 	}
 }
