@@ -135,23 +135,25 @@ public class SteganographyTest {
 				(new FileOutputStream("log.txt"), "utf-8"));
 		for(int i = 0; i < stegoGrid.length; i++) {
 			for(int j = 0; j < stegoGrid[0].length - 2; j = j + 2) {
-				if(!(i == 0 && j == 0) || !(i == 0 && j == 1) || !(i == 0 && j == 2)) { 				//just to skip the first three pixels
-					String log1 = "P "+((i+1)*(j+1))+": "+stegoGrid[i][j];
-					String log2 = "P "+((i+1)*(j+2))+": "+stegoGrid[i][j + 1];
-					String log3 = "P "+((i+1)*(j+3))+": "+stegoGrid[i][j + 2];
-					int[] newValues = embedTo3PixelBlock(stegoGrid[i][j], stegoGrid[i][j + 1], stegoGrid[i][j + 2], rangeTable);
-					stegoGrid[i][j] = newValues[1];
-					stegoGrid[i][j + 1] = newValues[0];
-					stegoGrid[i][j + 2] = newValues[2];
- 					log1 += " | P' "+((i+1)*(j+1))+": "+stegoGrid[i][j];
-					log2 += " | P' "+((i+1)*(j+2))+": "+stegoGrid[i][j + 1];
-					log3 += " | P' "+((i+1)*(j+3))+": "+stegoGrid[i][j + 2];
-					writer.write(log1);
-					writer.newLine();
-					writer.write(log2);
-					writer.newLine();
-					writer.write(log3);
-					writer.newLine();
+				if(secretMessage.currentBit <= secretMessage.finalBit) {
+					if(!(i == 0 && j == 0) || !(i == 0 && j == 1) || !(i == 0 && j == 2)) { 				//just to skip the first three pixels
+						String log1 = "P "+((i+1)*(j+1))+": "+stegoGrid[i][j];
+						String log2 = "P "+((i+1)*(j+2))+": "+stegoGrid[i][j + 1];
+						String log3 = "P "+((i+1)*(j+3))+": "+stegoGrid[i][j + 2];
+						int[] newValues = embedTo3PixelBlock(stegoGrid[i][j], stegoGrid[i][j + 1], stegoGrid[i][j + 2], rangeTable);
+						stegoGrid[i][j] = newValues[1];
+						stegoGrid[i][j + 1] = newValues[0];
+						stegoGrid[i][j + 2] = newValues[2];
+	 					log1 += " | P' "+((i+1)*(j+1))+": "+stegoGrid[i][j];
+						log2 += " | P' "+((i+1)*(j+2))+": "+stegoGrid[i][j + 1];
+						log3 += " | P' "+((i+1)*(j+3))+": "+stegoGrid[i][j + 2];
+						writer.write(log1);
+						writer.newLine();
+						writer.write(log2);
+						writer.newLine();
+						writer.write(log3);
+						writer.newLine();
+					}
 				}
 			}
 		}
