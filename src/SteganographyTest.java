@@ -1,15 +1,22 @@
 import java.awt.image.BufferedImage;
 import java.io.IOException;
+import java.io.OutputStreamWriter;
+import java.io.UnsupportedEncodingException;
+
 import javax.imageio.ImageIO;
 import javax.swing.plaf.synth.SynthSeparatorUI;
 
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
 import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 public class SteganographyTest {
 	
 	public static int[][] stegoGrid = new int[512][512];
 	static MessageHelper secretMessage = new MessageHelper("test.txt");					//Scan Message
 	
-	public static void main(String[] args) {
+	public static void main(String[] args) throws IOException {
 		//TODO RANGE TABLE 1
 		//ang format ng table is like this: (example of range table ni khodae & Faez 'to)
 		/******************************
@@ -17,6 +24,7 @@ public class SteganographyTest {
 		 *Lower	:	0	8	16	32	64
 		 *Upper	:	7	15	31	63	255
 		 *BITS  :   0 	0 	0	0	0    <- bits embeddable wherein it will be computed after determining which range table is going to be used
+		 *									the formula for this is Log2(Upper - Lower) (floor)
 		 ******************************/
 		int[][] rangeTable1 = 	{{0,8,16,32,64},
 								 {7,15,31,63,255},
@@ -29,30 +37,30 @@ public class SteganographyTest {
 		SteganographyTest image = new SteganographyTest();
 		stegoGrid = getImagePixelValues(image.getImage("lena_gray.bmp"), stegoGrid); 		//create new grid
 		//determine if image is jagged or smooth
-		replaceLeastSignificantBit(stegoGrid[0][3], 3, 2);
 		if(isSmooth(stegoGrid)) {
 			//embed using smooth table
 			stegoGrid[0][0] = (byte) (stegoGrid[0][0] & ~(1 << 0)) & 0xff;					//notice i used bitwise operations, not convert to binary
 			rangeTable1[2] = getEmbeddableBits(rangeTable1);
-			embedHiddenMessage("test", stegoGrid, rangeTable1);
+			embedHiddenMessage(stegoGrid, rangeTable1);
 		} else {
 			//embed using edgy table
 			stegoGrid[0][0] = (byte) (stegoGrid[0][0] | (1 << 0)) & 0xff;					//here as well.
 			rangeTable1[2] = getEmbeddableBits(rangeTable1);
-			embedHiddenMessage("test", stegoGrid, rangeTable2);
+			embedHiddenMessage(stegoGrid, rangeTable2);
 		}
-		
 		createStegoImage(stegoGrid);
 	}
 	public static int[] getEmbeddableBits(int[][] rangeTable) {
 		int[] embeddableSecretBits = new int[rangeTable[0].length];
 		for(int i = 0; i < rangeTable[0].length; i++) {
-			embeddableSecretBits[i] = (int)Math.round(	
-					Math.log((rangeTable[1][i]-rangeTable[0][i]) 
-							/ Math.log(2))); 
+			embeddableSecretBits[i] = (i <= 3) ? 
+					(int)Math.round((Math.log(rangeTable[1][i]-rangeTable[0][i]) / Math.log(2))): 
+					(int)Math.round((Math.log(rangeTable[0][i]) / Math.log(2)));
+			System.out.println("embeddable "+embeddableSecretBits[i]);
 		}
 		return embeddableSecretBits;
 	}
+	
 	public static boolean isSmooth(int[][] pixelGrid) { 									//true if smooth, else image is edgy
 		int height = pixelGrid.length;
 		int width = pixelGrid[0].length;
@@ -95,7 +103,7 @@ public class SteganographyTest {
 			for(int j = 0; j < width; j++) {
 				pixelValueArray[i][j] = image.getRGB(i, j);
 				pixelValueArray[i][j] = (pixelValueArray[i][j] >> 8) & 0xff;	//we can shift >> 16 OR 0, pareparehas lang naman
-																				//ang R G B values. we are using TYPE_INT_ARGB here
+																				//ang R G B values.
 			}
 		} 
 
@@ -122,43 +130,45 @@ public class SteganographyTest {
 		}
 		
 	}
-	public static void embedHiddenMessage(String message, int[][] stegoGrid, int[][] rangeTable) {
-		int counter = 0;
+	public static void embedHiddenMessage(int[][] stegoGrid, int[][] rangeTable) throws IOException {
+		BufferedWriter writer = new BufferedWriter(new OutputStreamWriter
+				(new FileOutputStream("log.txt"), "utf-8"));
 		for(int i = 0; i < stegoGrid.length; i++) {
 			for(int j = 0; j < stegoGrid[0].length - 2; j = j + 2) {
 				if(!(i == 0 && j == 0) || !(i == 0 && j == 1) || !(i == 0 && j == 2)) { 				//just to skip the first three pixels
-					embedTo3PixelBlock(stegoGrid[i][j], stegoGrid[i][j + 1], stegoGrid[i][j + 2], rangeTable);
-//					//use LSB
-//					int firstEmbeddedPixel = replaceLeastSignificantBit
-//								(firstBinaryPixel, 3, Integer.parseInt(MessageHelper.getSecretBits(3), 2)); 						
-//					int diff1 = firstBinaryPixel - secondBinaryPixel;
-//					
-//					int index = locateTableRange(diff1, rangeTable);
-//					
-//					int secretBits = (int)Math.round(	
-//							Math.log((rangeTable[1][index]-rangeTable[0][index]) //log2(x) = Math.log(x)/Math.log(2)
-//									/ Math.log(2)));  							 //speed of this can be improved
-//					
-//					
-//					int newDiff1 = 2 /*getSecretBits() +  rangeTable[1][index] */;
-					
+					String log1 = "P "+((i+1)*(j+1))+": "+stegoGrid[i][j];
+					String log2 = "P "+((i+1)*(j+2))+": "+stegoGrid[i][j + 1];
+					String log3 = "P "+((i+1)*(j+3))+": "+stegoGrid[i][j + 2];
+					int[] newValues = embedTo3PixelBlock(stegoGrid[i][j], stegoGrid[i][j + 1], stegoGrid[i][j + 2], rangeTable);
+					stegoGrid[i][j] = newValues[1];
+					stegoGrid[i][j + 1] = newValues[0];
+					stegoGrid[i][j + 2] = newValues[2];
+ 					log1 += " | P' "+((i+1)*(j+1))+": "+stegoGrid[i][j];
+					log2 += " | P' "+((i+1)*(j+2))+": "+stegoGrid[i][j + 1];
+					log3 += " | P' "+((i+1)*(j+3))+": "+stegoGrid[i][j + 2];
+					writer.write(log1);
+					writer.newLine();
+					writer.write(log2);
+					writer.newLine();
+					writer.write(log3);
+					writer.newLine();
 				}
 			}
 		}
-		
+		writer.flush();
+		writer.close();
 	}
 	
-	public static void embedTo3PixelBlock(int leftPixel, int basePixel, int rightPixel, int[][] rangeTable){
+	public static int[] embedTo3PixelBlock(int leftPixel, int basePixel, int rightPixel, int[][] rangeTable){
 		int basePixel3LSB = (byte) (1 & ((1 << 3) - 1)); 
-		int embeddedBasePixel = replaceLeastSignificantBit
-				(basePixel, 3, Integer.parseInt(secretMessage.getSecretBits(3), 2));
-		int secretMessageLSB = Integer.parseInt(secretMessage.peekSecretBits(3));
+		int secretMessageLSB = Integer.parseInt(secretMessage.peekSecretBits(3), 2);
+		int embeddedBasePixel = replaceLeastSignificantBit(basePixel, 3, Integer.parseInt(secretMessage.getSecretBits(3), 2));
 		int baseDifference = basePixel3LSB - secretMessageLSB;
 		
-		if(baseDifference > Math.pow(2, 3) && (basePixel + Math.pow(2, 3) >= 0)) {
+		if(baseDifference > Math.pow(2, 3) && (basePixel + Math.pow(2, 3) >= 0) && (basePixel + Math.pow(2, 3) <= 255)) {
 			embeddedBasePixel += Math.pow(2, 3); 
-		} else if(baseDifference < (-1 * Math.pow(2,3)) && (basePixel - Math.pow(2, 3) <= 255)) {
-			embeddedBasePixel -= Math.pow(2,3);
+		} else if(baseDifference < (-1 * Math.pow(2,3)) && (basePixel - Math.pow(2, 3) <= 255) && (basePixel - Math.pow(2, 3) >= 0)) {
+			embeddedBasePixel -= Math.pow(2, 3);
 		} else {
 			//do nothing;
 		}
@@ -168,14 +178,19 @@ public class SteganographyTest {
 		
 		int leftDiffRangeIndex = locateTableRange(diffLeft, rangeTable);
 		int rightDiffRangeIndex = locateTableRange(diffRight, rangeTable);
-		
+//		System.out.println("indeces "+leftDiffRangeIndex+" "+rightDiffRangeIndex);
 		int embeddableBitsLeft = rangeTable[2][leftDiffRangeIndex];		
 		int embeddableBitsRight = rangeTable[2][rightDiffRangeIndex];
+//		System.out.println("embeddable: "+embeddableBitsLeft+" "+embeddableBitsRight);
 		
-		int newDiffLeft = rangeTable[1][leftDiffRangeIndex] 
-				+ Integer.parseInt(secretMessage.getSecretBits(embeddableBitsLeft));
-		int newDiffRight = rangeTable[1][rightDiffRangeIndex] 
-				+ Integer.parseInt(secretMessage.getSecretBits(embeddableBitsRight));
+		int s1 = Integer.parseInt(secretMessage.getSecretBits(embeddableBitsLeft), 2);
+		int s2 = Integer.parseInt(secretMessage.getSecretBits(embeddableBitsRight), 2);
+		
+//		System.out.println("s1 "+s1+" s2 "+s2);
+		
+		int newDiffLeft = rangeTable[0][leftDiffRangeIndex] + s1;
+		int newDiffRight = rangeTable[0][rightDiffRangeIndex] + s2;
+//		System.out.println(newDiffLeft+" "+newDiffRight);
 		
 		int leftPixelTemp1 = embeddedBasePixel + newDiffLeft;
 		int leftPixelTemp2 = embeddedBasePixel - newDiffLeft;
@@ -187,10 +202,13 @@ public class SteganographyTest {
 		int embeddedRightPixel = (Math.abs(rightPixel - rightPixelTemp1) < Math.abs(rightPixel - rightPixelTemp2)) ?
 								  rightPixelTemp1 : rightPixelTemp2;
 		
+//		System.out.println(embeddedLeftPixel+" "+embeddedRightPixel);
 		//replace old val with new val
 		basePixel = embeddedBasePixel;
 		leftPixel = embeddedLeftPixel;
 		rightPixel = embeddedRightPixel;
+		
+		return new int[] {embeddedBasePixel, embeddedLeftPixel, embeddedRightPixel};
 	}
 	public static int replaceLeastSignificantBit(int pixel, int bitsToReplace, int toEmbed) {
 		//make the bits 0
@@ -198,17 +216,19 @@ public class SteganographyTest {
 		for(int i = 0; i <= bitsToReplace; i++) {
 			modifiedPixel = (byte) (modifiedPixel & ~(1 << i)) & 0xff; 			//make 3 LSB 0
 		}
-		System.out.println(Integer.toBinaryString(modifiedPixel));
 		modifiedPixel = ((byte) modifiedPixel | (byte)toEmbed)& 0xff ; 
-		System.out.println(Integer.toBinaryString(modifiedPixel));
 		
 		return modifiedPixel;
 	}
 	
 	public static int locateTableRange(int diff, int[][] rangeTable) {
 		int index = 0;
-		
-		
+		for(int i = 0; i < rangeTable[0].length; i++){
+			if(diff >= rangeTable[0][i] && diff <= rangeTable[1][i]){
+				index = i;
+				break;
+			}
+		}
 		return index;
 	}
 }

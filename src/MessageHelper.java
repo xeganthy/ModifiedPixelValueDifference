@@ -8,7 +8,7 @@ import java.io.OutputStreamWriter;
 
 public class MessageHelper {
 	private static BitSet bitset = null;
-	private static int currentBit = 0;
+	static int currentBit = 0;
 	
 	MessageHelper(String filename) {
 		try {
@@ -16,6 +16,17 @@ public class MessageHelper {
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
+		}
+	}
+	
+	MessageHelper(int a) {
+		String tester = "1101100011001";
+		bitset =  new BitSet(tester.length());
+		for(int i= 0; i < tester.length(); i++) {
+			if (tester.charAt(i) == '1') {
+	            bitset.set(i);
+	        } else {
+	        }
 		}
 	}
 	public static void messageToBinary(String fileName) throws IOException {
@@ -28,7 +39,7 @@ public class MessageHelper {
 		String bitsetS = "";
 		bitset =  new BitSet(binaryMessage.length());
 		
-		System.out.println(bitset.size());
+//		System.out.println(bitset.size());
 		for(int i = 0; i < binaryMessage.length(); i++) {
 			
 			if (binaryMessage.charAt(i) == '1') {
@@ -38,7 +49,7 @@ public class MessageHelper {
 	        	bitsetS += '0';
 	        }
 		}
-		System.out.println(bitsetS.equals(binaryMessage));
+//		System.out.println(bitsetS.equals(binaryMessage));
 		
 		try (BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(
 				new FileOutputStream("convertedMessage.txt"), "utf-8"))) {
@@ -74,17 +85,19 @@ public class MessageHelper {
 	
 	public String getSecretBits(int numberToRead) {
 		int lastBit = currentBit + numberToRead;
-		String secretBits = "";
-		for(int i = currentBit; i < lastBit; i++) {
-			if(bitset.get(i)) {
-				secretBits += '1';
-			} else {
-				secretBits += '0';
+		if(lastBit <= bitset.length()) {
+			String secretBits = "";
+			for(int i = currentBit; i < lastBit; i++) {
+				if(bitset.get(i)) {
+					secretBits += '1';
+				} else {
+					secretBits += '0';
+				}
 			}
+			currentBit = lastBit;
+			return secretBits;
 		}
-		currentBit = lastBit;
-		System.out.println(secretBits);
-		return secretBits;
+		return "0";
 	}
 	
 	public String peekSecretBits(int numberToRead) {
