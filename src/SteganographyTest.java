@@ -16,12 +16,15 @@ public class SteganographyTest {
 		 *RANGE	:	R1	R2	R3	R4	Rn 
 		 *Lower	:	0	8	16	32	64
 		 *Upper	:	7	15	31	63	255
+		 *BITS  :   0 	0 	0	0	0    <- bits embeddable wherein it will be computed after determining which range table is going to be used
 		 ******************************/
 		int[][] rangeTable1 = 	{{0,8,16,32,64},
-								 {7,15,31,63,255}};
+								 {7,15,31,63,255},
+								 {0,0,0,0,0}};
 		//TODO RANGE TABLE 2 
 		int[][] rangeTable2 = 	{{0,8,16,32,64},
-				 				 {7,15,31,63,255}};
+				 				 {7,15,31,63,255},
+								 {0,0,0,0,0}};
 		
 		SteganographyTest image = new SteganographyTest();
 		stegoGrid = getImagePixelValues(image.getImage("lena_gray.bmp"), stegoGrid); 		//create new grid
@@ -30,14 +33,25 @@ public class SteganographyTest {
 		if(isSmooth(stegoGrid)) {
 			//embed using smooth table
 			stegoGrid[0][0] = (byte) (stegoGrid[0][0] & ~(1 << 0)) & 0xff;					//notice i used bitwise operations, not convert to binary
+			rangeTable1[2] = getEmbeddableBits(rangeTable1);
 			embedHiddenMessage("test", stegoGrid, rangeTable1);
 		} else {
 			//embed using edgy table
 			stegoGrid[0][0] = (byte) (stegoGrid[0][0] | (1 << 0)) & 0xff;					//here as well.
+			rangeTable1[2] = getEmbeddableBits(rangeTable1);
 			embedHiddenMessage("test", stegoGrid, rangeTable2);
 		}
 		
 		createStegoImage(stegoGrid);
+	}
+	public static int[] getEmbeddableBits(int[][] rangeTable) {
+		int[] embeddableSecretBits = new int[rangeTable[0].length];
+		for(int i = 0; i < rangeTable[0].length; i++) {
+			embeddableSecretBits[i] = (int)Math.round(	
+					Math.log((rangeTable[1][i]-rangeTable[0][i]) 
+							/ Math.log(2))); 
+		}
+		return embeddableSecretBits;
 	}
 	public static boolean isSmooth(int[][] pixelGrid) { 									//true if smooth, else image is edgy
 		int height = pixelGrid.length;
@@ -140,6 +154,7 @@ public class SteganographyTest {
 				(basePixel, 3, Integer.parseInt(secretMessage.getSecretBits(3), 2));
 		int secretMessageLSB = Integer.parseInt(secretMessage.peekSecretBits(3));
 		int baseDifference = basePixel3LSB - secretMessageLSB;
+		
 		if(baseDifference > Math.pow(2, 3) && (basePixel + Math.pow(2, 3) >= 0)) {
 			embeddedBasePixel += Math.pow(2, 3); 
 		} else if(baseDifference < (-1 * Math.pow(2,3)) && (basePixel - Math.pow(2, 3) <= 255)) {
@@ -154,8 +169,8 @@ public class SteganographyTest {
 		int leftDiffRangeIndex = locateTableRange(diffLeft, rangeTable);
 		int rightDiffRangeIndex = locateTableRange(diffRight, rangeTable);
 		
-		int embeddableBitsLeft = rangeTable[3][leftDiffRangeIndex];		//TODO Tj bits embeddable on a speciifc range
-		int embeddableBitsRight = rangeTable[3][rightDiffRangeIndex];
+		int embeddableBitsLeft = rangeTable[2][leftDiffRangeIndex];		
+		int embeddableBitsRight = rangeTable[2][rightDiffRangeIndex];
 		
 		int newDiffLeft = rangeTable[1][leftDiffRangeIndex] 
 				+ Integer.parseInt(secretMessage.getSecretBits(embeddableBitsLeft));
