@@ -8,37 +8,35 @@ import javax.imageio.ImageIO;
 public class ARC_Algo {
 
 	public static void main(String[] args) {
-		ARC_Algo ARC = new ARC_Algo();
-		
+		int rangeTable[][] = new int[1][1];
 		//input
-		BufferedImage image = ARC.getImage("lena_gray.bmp");
+		BufferedImage image = getImage("lena_gray.bmp");
 		MessageHelper secretMessage = new MessageHelper("test.txt");
 		
 		int[][] stegoGrid = new int[image.getHeight()][image.getWidth()];
 		stegoGrid = getImagePixelValues(image, stegoGrid); 	//[col][row]
 		
 		List<Block> blocks = pixelDivision(stegoGrid);		//pixel division
-		
+		//embedBlock(blocks.get(1), secretMessage, rangeTable);
 		for(int i = 0; i < blocks.size(); i++){			//embedding phase
-			Block newBlockValues = embedBlock(blocks.get(i));
-			blocks.set(i, newBlockValues);
+			embedBlock(blocks.get(i), secretMessage, rangeTable);
 		}
 		
 		int counter = 0;
 		for(int i = 0; i < stegoGrid.length; i++) { //replace each block's value to image
 			for(int j = 0; j < stegoGrid[0].length - 2; j += 3){
-				stegoGrid[j][i] = blocks.get(counter).leftPixel;
-				stegoGrid[j+1][i] = blocks.get(counter).basePixel;
-				stegoGrid[j+2][i] = blocks.get(counter).rightPixel;
+				stegoGrid[j][i] = blocks.get(counter).getLeftPixel();
+				stegoGrid[j+1][i] = blocks.get(counter).getBasePixel();
+				stegoGrid[j+2][i] = blocks.get(counter).getRightPixel();
 				counter++;
 			}
 		}
 		createStegoImage(stegoGrid);
 	}
-	public BufferedImage getImage(String path) {
+	public static BufferedImage getImage(String path) {
 		BufferedImage img = null;
 		try {
-			img = ImageIO.read(getClass().getResource(path));
+			img = ImageIO.read(KhodFaez_Algo.class.getResource(path));
 		} catch(IOException e) {
 			System.out.println("File Error!");
 		}
@@ -88,15 +86,69 @@ public class ARC_Algo {
 		return blocks;
 	}
 	
-	public static Block embedBlock(Block block) {
-		//3-LSB
-		
+	public static void embedBlock(Block block, MessageHelper secretMessage, int[][] rangeTable) {
+		int basePixel3LSB = (byte) (block.getBasePixel() & ((1 << 3) - 1)); 
+		int secretMessageLSB = Integer.parseInt(secretMessage.peekSecretBits(3), 2);
+		int embeddedBasePixel = replaceLeastSignificantBit
+				(block.getBasePixel(), 3, Integer.parseInt(secretMessage.getSecretBits(3), 2)); //LSB
+		block.setBasePixel(opapPixel(basePixel3LSB, secretMessageLSB, embeddedBasePixel));
 		//DETERMINE RANGE
+		block.setLeftRange(locateTableRange(Math.abs(block.getBasePixel() - block.getLeftPixel()), rangeTable));
+		block.setRightRange(locateTableRange(Math.abs(block.getBasePixel() - block.getRightPixel()), rangeTable));
 		
 		//PVD ((EMBEDDING OF SECRET MESSAGE))
+		int embeddedLeftPixel = embedPixelPVD("left", block, secretMessage, rangeTable);
+		int embeddedRightPixel = embedPixelPVD("right", block, secretMessage, rangeTable);
+		
+		block.setLeftPixel(embeddedLeftPixel);
+		block.setRightPixel(embeddedRightPixel);
+	}
+	
+	public static int embedPixelPVD(String pixel, Block block, MessageHelper secretMessage, int[][] rangeTable) {
+		int embeddableBits = rangeTable[2][block.getRangeIndex(pixel)];
+		int secretM = Integer.parseInt(secretMessage.getSecretBits(embeddableBits), 2);
+		int newDiff = rangeTable[0][block.getRangeIndex(pixel)] + secretM;
+		
+		int embeddedPixelTemp1 = block.getBasePixel() + newDiff;
+		int embeddedPixelTemp2 = block.getBasePixel() - newDiff;
+		
+		if(pixel.equals("left")) {
+			if(Math.abs(block.getLeftPixel() - embeddedPixelTemp1) < Math.abs(block.getLeftPixel() - embeddedPixelTemp2)) {
+				return embeddedPixelTemp1;
+			} else {
+				return embeddedPixelTemp2;
+			}
+		} else { 
+			if(Math.abs(block.getRightPixel() - embeddedPixelTemp1) < Math.abs(block.getRightPixel() - embeddedPixelTemp2)) {
+				return embeddedPixelTemp1;
+			} else {
+				return embeddedPixelTemp2;
+			}
+		}
 		
 		
-		return block;
+	}
+	public static int locateTableRange(int diff, int[][] rangeTable) {
+		int index = 0;
+		for(int i = 0; i < rangeTable[0].length; i++){
+			if(diff >= rangeTable[0][i] && diff <= rangeTable[1][i]){
+				index = i;
+				break;
+			}
+		}
+		return index;
+	}
+	
+	public static int opapPixel(int basePixel3LSB, int secretMessageLSB, int embeddedBasePixel) {
+		int baseDifference = basePixel3LSB - secretMessageLSB;
+		
+		if(baseDifference > Math.pow(2, 2) && (embeddedBasePixel + Math.pow(2, 3) >= 0) && (embeddedBasePixel + Math.pow(2, 3) <= 255)) {
+			embeddedBasePixel += Math.pow(2, 3); 
+		} else if(baseDifference < (-1 * Math.pow(2,2)) && (embeddedBasePixel - Math.pow(2, 3) <= 255) && (embeddedBasePixel - Math.pow(2, 3) >= 0)) {
+			embeddedBasePixel -= Math.pow(2, 3);
+		}
+		
+		return embeddedBasePixel;
 	}
 	
 	public static int replaceLeastSignificantBit(int pixel, int bitsToReplace, int toEmbed) {
