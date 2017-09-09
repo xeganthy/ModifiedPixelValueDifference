@@ -1,15 +1,9 @@
 import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
-import java.io.UnsupportedEncodingException;
-
 import javax.imageio.ImageIO;
-import javax.swing.plaf.synth.SynthSeparatorUI;
-
-import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 public class SteganographyTest {
 	
@@ -27,7 +21,7 @@ public class SteganographyTest {
 		 *									the formula for this is Log2(Upper - Lower) (floor)
 		 ******************************/
 		int[][] rangeTable1 = 	{{0,8,16,32,64},
-								 {7,15,31,63,255},
+								     {7,15,31,63,255},
 								 {0,0,0,0,0}};
 		//TODO RANGE TABLE 2 
 		int[][] rangeTable2 = 	{{0,8,16,32,64},
@@ -60,7 +54,6 @@ public class SteganographyTest {
 		}
 		return embeddableSecretBits;
 	}
-	
 	public static boolean isSmooth(int[][] pixelGrid) { 									//true if smooth, else image is edgy
 		int height = pixelGrid.length;
 		int width = pixelGrid[0].length;
@@ -81,10 +74,7 @@ public class SteganographyTest {
 		} else {
 			return true;
 		}
-		
-		
-	}
-	
+	}	
 	public BufferedImage getImage(String path) {
 		BufferedImage img = null;
 		try {
@@ -94,7 +84,6 @@ public class SteganographyTest {
 		}
 		return img;
 	}
-	
 	//returns all grayscale pixel value in 2d array
 	public static int[][] getImagePixelValues(BufferedImage image, int pixelValueArray[][]){
 		int height = image.getHeight();
@@ -109,7 +98,6 @@ public class SteganographyTest {
 
 		return pixelValueArray;
 	}
-	
 	public static void createStegoImage(int pixelValueArray[][]) {
 		BufferedImage image = new BufferedImage(512, 512, 
 									BufferedImage.TYPE_BYTE_GRAY); 
@@ -121,7 +109,7 @@ public class SteganographyTest {
 									(pixelDec << 0)); 
 			}
 		}
-		File imageFile = new File("Sample.bmp");
+		File imageFile = new File("stegoImage.bmp");
 		try {
 			ImageIO.write(image, "bmp", imageFile);
 			System.out.println("success printed @: "+System.getProperty("user.dir"));
@@ -133,20 +121,20 @@ public class SteganographyTest {
 	public static void embedHiddenMessage(int[][] stegoGrid, int[][] rangeTable) throws IOException {
 		BufferedWriter writer = new BufferedWriter(new OutputStreamWriter
 				(new FileOutputStream("log.txt"), "utf-8"));
-		for(int i = 0; i < stegoGrid.length; i++) {
-			for(int j = 0; j < stegoGrid[0].length - 2; j = j + 2) {
+		for(int j = 0; j < stegoGrid.length; j++) {
+			for(int i = 0; i < stegoGrid[0].length - 2; i += 3) {
 				if(secretMessage.currentBit <= secretMessage.finalBit) {
-					if(!(i == 0 && j == 0) || !(i == 0 && j == 1) || !(i == 0 && j == 2)) { 				//just to skip the first three pixels
-						String log1 = "P "+((i+1)*(j+1))+": "+stegoGrid[i][j];
-						String log2 = "P "+((i+1)*(j+2))+": "+stegoGrid[i][j + 1];
-						String log3 = "P "+((i+1)*(j+3))+": "+stegoGrid[i][j + 2];
-						int[] newValues = embedTo3PixelBlock(stegoGrid[i][j], stegoGrid[i][j + 1], stegoGrid[i][j + 2], rangeTable);
+					if((i != 0 || (j != 0 && j != 1 && j != 2))){ 				//just to skip the first three pixels
+						String log1 = "P["+j+"]["+i+"]: "+stegoGrid[i][j];
+						String log2 = "P["+j+"]["+(i+1)+"]: "+stegoGrid[i][j + 1];
+						String log3 = "P["+j+"]["+(i+2)+"]: "+stegoGrid[i][j + 2];
+						int[] newValues = embedTo3PixelBlock(stegoGrid[i][j], stegoGrid[i + 1][j], stegoGrid[i + 2][j], rangeTable);
 						stegoGrid[i][j] = newValues[1];
-						stegoGrid[i][j + 1] = newValues[0];
-						stegoGrid[i][j + 2] = newValues[2];
-	 					log1 += " | P' "+((i+1)*(j+1))+": "+stegoGrid[i][j];
-						log2 += " | P' "+((i+1)*(j+2))+": "+stegoGrid[i][j + 1];
-						log3 += " | P' "+((i+1)*(j+3))+": "+stegoGrid[i][j + 2];
+						stegoGrid[i + 1][j] = newValues[0];
+						stegoGrid[i + 2][j] = newValues[2];
+	 					log1 += " | P["+j+"]["+(i)+"]: "+stegoGrid[i][j];
+						log2 += " | P["+j+"]["+(i+1)+"]: "+stegoGrid[i][j + 1];
+						log3 += " | P["+j+"]["+(i+2)+"]: "+stegoGrid[i][j + 2];
 						writer.write(log1);
 						writer.newLine();
 						writer.write(log2);
@@ -160,7 +148,6 @@ public class SteganographyTest {
 		writer.flush();
 		writer.close();
 	}
-	
 	public static int[] embedTo3PixelBlock(int leftPixel, int basePixel, int rightPixel, int[][] rangeTable){
 		int basePixel3LSB = (byte) (1 & ((1 << 3) - 1)); 
 		int secretMessageLSB = Integer.parseInt(secretMessage.peekSecretBits(3), 2);
@@ -210,7 +197,7 @@ public class SteganographyTest {
 		leftPixel = embeddedLeftPixel;
 		rightPixel = embeddedRightPixel;
 		
-		return new int[] {embeddedBasePixel, embeddedLeftPixel, embeddedRightPixel};
+		return new int[] {basePixel, leftPixel, rightPixel};
 	}
 	public static int replaceLeastSignificantBit(int pixel, int bitsToReplace, int toEmbed) {
 		//make the bits 0
@@ -222,7 +209,6 @@ public class SteganographyTest {
 		
 		return modifiedPixel;
 	}
-	
 	public static int locateTableRange(int diff, int[][] rangeTable) {
 		int index = 0;
 		for(int i = 0; i < rangeTable[0].length; i++){

@@ -10,6 +10,7 @@ public class MessageHelper {
 	private static BitSet bitset = null;
 	static int currentBit = 0;
 	static int finalBit = 0;
+	
 	MessageHelper(String filename) {
 		try {
 			messageToBinary(filename);
