@@ -8,8 +8,8 @@ import java.io.OutputStreamWriter;
 
 public class MessageHelper {
 	private static BitSet bitset = null;
-	static int currentBit = 0;
-	static int finalBit = 0;
+	private int currentBit = 0;
+	private int finalBit = 0;
 	
 	MessageHelper(String filename) {
 		try {
@@ -21,7 +21,7 @@ public class MessageHelper {
 	}
 	
 	MessageHelper(int a) {
-		String tester = "1101100011001";
+		String tester = "10010010110111";
 		bitset =  new BitSet(tester.length());
 		for(int i= 0; i < tester.length(); i++) {
 			if (tester.charAt(i) == '1') {
@@ -30,7 +30,7 @@ public class MessageHelper {
 	        }
 		}
 	}
-	public static void messageToBinary(String fileName) throws IOException {
+	public void messageToBinary(String fileName) throws IOException {
 		String binaryMessage = "";
 		char[] messChar = getFile(fileName);
 
@@ -47,7 +47,7 @@ public class MessageHelper {
 	        }
 		}
 //		System.out.println(bitsetS.equals(binaryMessage));
-		finalBit = bitset.length();
+		this.finalBit = bitset.length();
 		try (BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(
 				new FileOutputStream("convertedMessage.txt"), "utf-8"))) {
 			writer.write(binaryMessage);
@@ -111,5 +111,20 @@ public class MessageHelper {
 		}
 		
 		return secretBits;
+	}
+	public int getCurrentBit() {
+		return this.currentBit;
+	}
+
+	public void setCurrentBit(int currentBit) {
+		this.currentBit = currentBit;
+	}
+
+	public int getFinalBit() {
+		return finalBit;
+	}
+
+	public  void setFinalBit(int finalBit) {
+		this.finalBit = finalBit;
 	}
 }
