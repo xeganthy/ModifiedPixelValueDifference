@@ -21,7 +21,7 @@ public class SteganographyTest {
 		 *									the formula for this is Log2(Upper - Lower) (floor)
 		 ******************************/
 		int[][] rangeTable1 = 	{{0,8,16,32,64},
-								     {7,15,31,63,255},
+							     {7,15,31,63,255},
 								 {0,0,0,0,0}};
 		//TODO RANGE TABLE 2 
 		int[][] rangeTable2 = 	{{0,8,16,32,64},
@@ -123,7 +123,7 @@ public class SteganographyTest {
 				(new FileOutputStream("log.txt"), "utf-8"));
 		for(int j = 0; j < stegoGrid.length; j++) {
 			for(int i = 0; i < stegoGrid[0].length - 2; i += 3) {
-				if(secretMessage.currentBit <= secretMessage.finalBit) {
+				if(secretMessage.getCurrentBit() <= secretMessage.getFinalBit()) {
 					if((i != 0 || (j != 0 && j != 1 && j != 2))){ 				//just to skip the first three pixels
 						String log1 = "P["+j+"]["+i+"]: "+stegoGrid[i][j];
 						String log2 = "P["+j+"]["+(i+1)+"]: "+stegoGrid[i][j + 1];
@@ -149,17 +149,15 @@ public class SteganographyTest {
 		writer.close();
 	}
 	public static int[] embedTo3PixelBlock(int leftPixel, int basePixel, int rightPixel, int[][] rangeTable){
-		int basePixel3LSB = (byte) (1 & ((1 << 3) - 1)); 
+		int basePixel3LSB = (byte) (basePixel & ((1 << 3) - 1)); 
 		int secretMessageLSB = Integer.parseInt(secretMessage.peekSecretBits(3), 2);
-		int embeddedBasePixel = replaceLeastSignificantBit(basePixel, 3, Integer.parseInt(secretMessage.getSecretBits(3), 2));
+		int embeddedBasePixel = replaceLeastSignificantBit(basePixel, 2, Integer.parseInt(secretMessage.getSecretBits(3), 2));
 		int baseDifference = basePixel3LSB - secretMessageLSB;
 		
-		if(baseDifference > Math.pow(2, 3) && (basePixel + Math.pow(2, 3) >= 0) && (basePixel + Math.pow(2, 3) <= 255)) {
+		if(baseDifference > Math.pow(2, 2) && (embeddedBasePixel + Math.pow(2, 3) >= 0) && (embeddedBasePixel + Math.pow(2, 3) <= 255)) {
 			embeddedBasePixel += Math.pow(2, 3); 
-		} else if(baseDifference < (-1 * Math.pow(2,3)) && (basePixel - Math.pow(2, 3) <= 255) && (basePixel - Math.pow(2, 3) >= 0)) {
+		} else if(baseDifference < (-1 * Math.pow(2, 2)) && (embeddedBasePixel - Math.pow(2, 3) <= 255) && (embeddedBasePixel - Math.pow(2, 3) >= 0)) {
 			embeddedBasePixel -= Math.pow(2, 3);
-		} else {
-			//do nothing;
 		}
 		
 		int diffLeft = Math.abs(embeddedBasePixel - leftPixel);
