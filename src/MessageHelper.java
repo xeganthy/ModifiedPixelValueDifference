@@ -27,27 +27,29 @@ public class MessageHelper {
 		for(int i= 0; i < tester.length(); i++) {
 			if (tester.charAt(i) == '1') {
 	            bitset.set(i);
-	        } else {
 	        }
 		}
 	}
 	public void messageToBinary(String fileName) throws IOException {
 		String binaryMessage = "";
-		char[] messChar = getFile(fileName);
-
-		for (int i = 0; i < messChar.length; i++){
-			binaryMessage += Integer.toBinaryString(messChar[i]);
+		String messChar = getFile(fileName);
+		byte[] chars = messChar.getBytes("UTF-8");
+		StringBuilder binary = new StringBuilder();
+		for(byte b : chars) {
+			int val = b;
+			for(int i = 0; i < 8; i++) {
+				binary.append((val & 128) == 0 ? 0 : 1);
+				val <<= 1;
+			}
 		}
-		bitset =  new BitSet(binaryMessage.length());
 		
-//		System.out.println(bitset.size());
+		binaryMessage = binary.toString();
+		bitset =  new BitSet(binaryMessage.length());
 		for(int i = 0; i < binaryMessage.length(); i++) {
 			if (binaryMessage.charAt(i) == '1') {
 	            bitset.set(i);
-	        } else {
 	        }
 		}
-//		System.out.println(bitsetS.equals(binaryMessage));
 		this.finalBit = bitset.length();
 		try (BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(
 				new FileOutputStream("convertedMessage.txt"), "utf-8"))) {
@@ -58,27 +60,25 @@ public class MessageHelper {
 		
 	}//end messageToBinary
 	
-	public static char[] getFile(String fileName) throws IOException {
-			String everything;
-			char[] input;
-			BufferedReader br = new BufferedReader(new FileReader(fileName));
-			try {
-			    StringBuilder sb = new StringBuilder();
-			    String line= br.readLine();;
-			    while (line != null) {
-			        sb.append(line);
-			       
-			       sb.append('\n');
-			       line = br.readLine();
-			        
-			    }
-			     everything = sb.toString();
-			  //  everything = everything.substring(0,(everything.length() - 1));
-			     input=everything.toCharArray();
-			     return input;
-			} finally {
-			    br.close();
-			}
+	public static String getFile(String fileName) throws IOException {
+		String everything;
+		BufferedReader br = new BufferedReader(new FileReader(fileName));
+		try {
+		    StringBuilder sb = new StringBuilder();
+		    String line= br.readLine();;
+		    while (line != null) {
+		        sb.append(line);
+		       
+		        sb.append('\n');
+		        line = br.readLine();
+		        
+		    }
+		     everything = sb.toString();
+		     
+		     return everything;
+		} finally {
+		    br.close();
+		}
 	}
 	
 	public static String[] splitBitStream(String fileName) throws IOException {
@@ -96,16 +96,17 @@ public class MessageHelper {
 		} finally {
 			br.close();
 		}
-		String output[] = bitstream.split("(?<=\\G.{3})");
-		System.out.println(java.util.Arrays.toString(bitstream.split("(?<=\\G.{8})")));
-		System.out.println(output.length);
+		String output[] = bitstream.split("(?<=\\G.{8})");
+		//System.out.println(java.util.Arrays.toString(bitstream.split("(?<=\\G.{8})")));
+		//System.out.println(output.length);
 		return output;
 	} 
 	
 	public static String binaryToASCII(String fileName) throws IOException {
 		String[] binValues = splitBitStream(fileName);
 		String output = "";
-		for(int i = 1; i < binValues.length - 1; i++) {
+		for(int i = 0; i < binValues.length - 1; i++) {
+			System.out.println(binValues[i]);
 			int charCode = Integer.parseInt(binValues[i], 2);
 			output += (char)charCode;
 		}

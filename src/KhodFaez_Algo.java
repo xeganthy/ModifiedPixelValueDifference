@@ -24,7 +24,7 @@ public class KhodFaez_Algo {
 		rangeTable[2] = getEmbeddableBits(rangeTable);
 		//embedBlock(blocks.get(1), secretMessage, rangeTable);
 		int gg = 0;
-		for(int i = 1; i < blocks.size(); i++){			//embedding phase
+		for(int i = 0; i < blocks.size(); i++){			//embedding phase
 			if(secretMessage.getCurrentBit() <= secretMessage.getFinalBit()){
 				embedBlock(blocks.get(i), secretMessage, rangeTable);
 				gg++;
@@ -40,11 +40,11 @@ public class KhodFaez_Algo {
 		List<Block> embeddedBlocks = pixelDivision(embeddedStegoGrid);
 		
 		String embeddedSecretMessage = "";
-		for(int i = 1; i < gg; i++) { //TODO when to stop
+		for(int i = 0; i < gg; i++) { //TODO when to stop
 //			System.out.println(i);
 			embeddedSecretMessage += extractBlock(blocks.get(i), rangeTable);
 		}
-//		printBlockInfo(blocks, embeddedBlocks, "embeddedBlocks");
+		printBlockInfo(blocks, blocks, "embeddedBlocks");
 		//testing(blocks, embeddedBlocks);
 		
 		BufferedWriter writer = new BufferedWriter(new OutputStreamWriter
