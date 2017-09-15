@@ -3,6 +3,7 @@ import java.io.FileReader;
 import java.io.BufferedReader;
 import java.util.BitSet;
 import java.io.BufferedWriter;
+import java.io.File;
 import java.io.FileOutputStream;
 import java.io.OutputStreamWriter;
 
@@ -78,6 +79,43 @@ public class MessageHelper {
 			} finally {
 			    br.close();
 			}
+	}
+	
+	public static String[] splitBitStream(String fileName) throws IOException {
+		String bitstream;
+		BufferedReader br = new BufferedReader(new FileReader(fileName));
+		try{
+			StringBuilder sb = new StringBuilder();
+			String line = br.readLine();
+			while(line != null) {
+				sb.append(line);
+				sb.append('\n');
+				line = br.readLine();
+			}
+				bitstream = sb.toString();
+		} finally {
+			br.close();
+		}
+		String output[] = bitstream.split("(?<=\\G.{3})");
+		System.out.println(java.util.Arrays.toString(bitstream.split("(?<=\\G.{8})")));
+		System.out.println(output.length);
+		return output;
+	} 
+	
+	public static String binaryToASCII(String fileName) throws IOException {
+		String[] binValues = splitBitStream(fileName);
+		String output = "";
+		for(int i = 1; i < binValues.length - 1; i++) {
+			int charCode = Integer.parseInt(binValues[i], 2);
+			output += (char)charCode;
+		}
+		
+		BufferedWriter writer = new BufferedWriter(new OutputStreamWriter
+				(new FileOutputStream("messageConverted.txt"), "utf-8"));
+		writer.write(output);
+		writer.flush();
+		writer.close();
+		return output;
 	}
 	
 	public String getSecretBits(int numberToRead) {

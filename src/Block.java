@@ -12,7 +12,20 @@ public class Block {
 	
 	private int leftRange;
 	private int rightRange;
-	
+	private String embedded;
+	private String extracted;
+	public String getEmbedded() {
+		return embedded;
+	}
+	public void setEmbedded(String embedded) {
+		this.embedded = embedded;
+	}
+	public String getExtracted() {
+		return extracted;
+	}
+	public void setExtracted(String extracted) {
+		this.extracted = extracted;
+	}
 	public int getLeftPixel() {
 		return leftPixel;
 	}
