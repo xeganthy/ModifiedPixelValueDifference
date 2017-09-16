@@ -8,7 +8,8 @@ import java.util.ArrayList;
 import java.util.List;
 import javax.imageio.ImageIO;
 
-public class KhodFaez_Algo {
+public class KhodFaez_Algo { 	//TODO better array to image and vice versa ((no loss dapat))
+								//TODO tests for 512 and 256 images
 	public static void main(String[] args) throws IOException {
 		int[][] rangeTable = 	{{0,8,16,32,64}, 	//lj
 							     {7,15,31,63,255}, 	//uj

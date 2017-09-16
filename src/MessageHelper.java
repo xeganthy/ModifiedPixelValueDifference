@@ -97,8 +97,6 @@ public class MessageHelper {
 			br.close();
 		}
 		String output[] = bitstream.split("(?<=\\G.{8})");
-		//System.out.println(java.util.Arrays.toString(bitstream.split("(?<=\\G.{8})")));
-		//System.out.println(output.length);
 		return output;
 	} 
 	
