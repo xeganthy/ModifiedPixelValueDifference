@@ -3,7 +3,6 @@ import java.io.FileReader;
 import java.io.BufferedReader;
 import java.util.BitSet;
 import java.io.BufferedWriter;
-import java.io.File;
 import java.io.FileOutputStream;
 import java.io.OutputStreamWriter;
 
@@ -12,6 +11,9 @@ public class MessageHelper {
 	private int currentBit = 0;
 	private int finalBit = 0;
 	
+	MessageHelper() {
+		
+	}
 	MessageHelper(String filename) {
 		try {
 			messageToBinary(filename);
@@ -52,7 +54,7 @@ public class MessageHelper {
 		}
 		this.finalBit = bitset.length();
 		try (BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(
-				new FileOutputStream("convertedMessage.txt"), "utf-8"))) {
+				new FileOutputStream("toEmbedBinary.txt"), "utf-8"))) {
 			writer.write(binaryMessage);
 			writer.flush();
 		}
@@ -104,13 +106,12 @@ public class MessageHelper {
 		String[] binValues = splitBitStream(fileName);
 		String output = "";
 		for(int i = 0; i < binValues.length - 1; i++) {
-			System.out.println(binValues[i]);
 			int charCode = Integer.parseInt(binValues[i], 2);
 			output += (char)charCode;
 		}
 		
 		BufferedWriter writer = new BufferedWriter(new OutputStreamWriter
-				(new FileOutputStream("messageConverted.txt"), "utf-8"));
+				(new FileOutputStream("ExtractedMessageASCII.txt"), "utf-8"));
 		writer.write(output);
 		writer.flush();
 		writer.close();
@@ -133,6 +134,14 @@ public class MessageHelper {
 			currentBit++;
 		}
 		return secretBits;
+	}
+	
+	public static void writeMessage(String embeddedSecretMessage) throws IOException{
+		BufferedWriter writer = new BufferedWriter(new OutputStreamWriter
+				(new FileOutputStream("ExtractedMessageBinary.txt"), "utf-8"));
+		writer.write(embeddedSecretMessage);
+		writer.flush();
+		writer.close();
 	}
 	
 	public String peekSecretBits(int numberToRead) {
