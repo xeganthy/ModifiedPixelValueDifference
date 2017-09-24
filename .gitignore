@@ -1,2 +1,7 @@
 /bin/
 /log.txt
+/BlocksInfoEmbedded.txt
+/BlocksInfoExtracted.txt
+/ExtractedMessageASCII.txt
+/ExtractedMessageBinary.txt
+/toEmbedBinary.txt
