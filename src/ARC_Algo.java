@@ -1,61 +1,62 @@
 import java.awt.image.BufferedImage;
 import java.io.BufferedWriter;
-import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
-import java.util.ArrayList;
 import java.util.List;
-import javax.imageio.ImageIO;
 
 public class ARC_Algo { 	//TODO better array to image and vice versa ((no loss dapat))
 							//TODO tests for 512 and 256 images
-	public static void main(String[] args) throws IOException {
-		int[][] rangeTable = 	{{0,8,16,32,64}, 	//lj
-							     {7,15,31,63,255}, 	//uj
-								 {0,0,0,0,0}};		//tj
-		//input
-		BufferedImage image = getImage("lena_gray.bmp");
-		MessageHelper secretMessage = new MessageHelper("test.txt");
-		
-		int[][] stegoGrid = new int[image.getHeight()][image.getWidth()];
-		stegoGrid = getImagePixelValues(image, stegoGrid); 					//[col][row]
-		embedTableClue(stegoGrid[0][0], imageClassification(stegoGrid)); 	//preprocess, true if smooth, else false
-		
-		List<Block> blocks = pixelDivision(stegoGrid);						//pixel division
-		rangeTable[2] = getEmbeddableBits(rangeTable);
-		int gg = 0;
-		for(int i = 0; i < blocks.size(); i++){			//embedding phase
+							//TODO when to stop extracting
+	int[][] rangeTableA = 	{{0,8,16,32,64}, 	//lj; TABLE FOR SMOOTH
+		     				{7,15,31,63,255}, 	//uj
+		     				{0,0,0,0,0}};		//tj
+	int[][] rangeTableB = 	{{0,8,16,32,64}, 	//lj; TABLE FOR EDGY
+		     				{7,15,31,63,255}, 	//uj
+		     				{0,0,0,0,0}};		//tj
+	
+	private int[][] imageGrid;							//each element has the equivalent pixel value ((decimal))
+	private MessageHelper secretMessage;				//converted text file ((binary))
+	private List<Block> blocks;
+	int counter = 0;									//temp stopper for extraction
+	ARC_Algo(int[][] imageGrid, MessageHelper secretMessage) {	//constructor
+		this.imageGrid = imageGrid;
+		this.secretMessage = secretMessage;
+		rangeTableA[2] = getEmbeddableBits(rangeTableA);
+		rangeTableB[2] = getEmbeddableBits(rangeTableB);
+	}
+	
+	public void embedImage() throws IOException {
+		boolean isSmooth = imageClassification(imageGrid); 	//Module 1
+		int[][] rangeTable = (isSmooth) ? rangeTableA : rangeTableB; 
+		embedTableClue(imageGrid[0][0], isSmooth);				//Module 2
+		blocks = ImageHelper.pixelDivision(imageGrid);				//Module 3
+		for(int i = 1; i < blocks.size(); i++){			//embedding phase
 			if(secretMessage.getCurrentBit() <= secretMessage.getFinalBit()){
 				embedBlock(blocks.get(i), secretMessage, rangeTable);
-				gg++;
+				counter++;
 			}
 		}
-		updateGrid(stegoGrid, blocks);
-		createStegoImage(stegoGrid);
-		
-		//extraction
-		BufferedImage stegoImage = getImage("stegoImage.bmp");
-		int[][] embeddedStegoGrid = new int[stegoImage.getHeight()][stegoImage.getWidth()];
-		embeddedStegoGrid = getImagePixelValues(stegoImage, embeddedStegoGrid);
-		List<Block> embeddedBlocks = pixelDivision(embeddedStegoGrid);
-		
-		String embeddedSecretMessage = "";
-		for(int i = 0; i < gg; i++) { //TODO when to stop
-//			System.out.println(i);
-			embeddedSecretMessage += extractBlock(blocks.get(i), rangeTable);
-		}
-		printBlockInfo(blocks, blocks, "embeddedBlocks");
-		//testing(blocks, embeddedBlocks);
-		
-		BufferedWriter writer = new BufferedWriter(new OutputStreamWriter
-				(new FileOutputStream("secMess.txt"), "utf-8"));
-		writer.write(embeddedSecretMessage);
-		writer.flush();
-		writer.close();
-		
-		System.out.println(MessageHelper.binaryToASCII("secMess.txt"));
+		printBlockInfo(blocks, blocks, "BlocksInfoEmbedded");
+		updateGrid(imageGrid, blocks);
+		ImageHelper.createStegoImage(imageGrid, "ARCStegoImage");
 	}
+	
+	public void extractMessage(BufferedImage stegoImage) throws IOException {
+		int[][] embeddedStegoGrid = new int[stegoImage.getHeight()][stegoImage.getWidth()];
+		embeddedStegoGrid = ImageHelper.getImagePixelValues(stegoImage, embeddedStegoGrid);
+		int[][] rangeTable = (isTableA(embeddedStegoGrid[0][0])) ? rangeTableA : rangeTableB;
+		List<Block> embeddedBlocks = ImageHelper.pixelDivision(embeddedStegoGrid);
+		String embeddedSecretMessage = "";
+		for(int i = 1; i < counter; i++) {
+			embeddedSecretMessage += extractBlock(embeddedBlocks.get(i), rangeTable);
+		}
+		printBlockInfo(embeddedBlocks, embeddedBlocks, "BlocksInfoExtracted");
+		//testing(blocks, embeddedBlocks);
+		MessageHelper.writeMessage(embeddedSecretMessage);
+		System.out.println(MessageHelper.binaryToASCII("ExtractedMessageBinary.txt"));
+	}
+	
 	
 	public static boolean imageClassification(int[][] stegoGrid) { //TODO
 		
@@ -65,12 +66,20 @@ public class ARC_Algo { 	//TODO better array to image and vice versa ((no loss d
 	
 	public static void embedTableClue(int pixel, boolean isSmooth) {
 		if(isSmooth) {
-			//embed on pix
+			//embed on pix; 0
 		} else {
 			//embed on pix
 		}
 	}
 	
+	public static boolean isTableA(int firstPixel){
+		int firstPixelLSB = firstPixel & ((1 << 1) - 1);
+		if(firstPixelLSB == 0) {
+			return true;
+		} else {
+			return false;
+		}
+	}
 	public static void updateGrid(int[][] stegoGrid, List<Block> blocks) {
 		int counter = 0;
 		for(int i = 0; i < stegoGrid.length; i++) { //replace each block's value to image
@@ -81,58 +90,6 @@ public class ARC_Algo { 	//TODO better array to image and vice versa ((no loss d
 				counter++;
 			}
 		}
-	}
-	public static BufferedImage getImage(String path) {
-		BufferedImage img = null;
-		try {
-			img = ImageIO.read(KhodFaez_Algo.class.getResource(path));
-		} catch(IOException e) {
-			System.out.println("File Error!");
-		}
-		return img;
-	}
-	public static int[][] getImagePixelValues(BufferedImage image, int pixelValueArray[][]){
-		int height = image.getHeight();
-		int width = image.getWidth();
-		for(int i = 0; i < height; i++) {
-			for(int j = 0; j < width; j++) {
-				pixelValueArray[i][j] = image.getRGB(i, j);
-				pixelValueArray[i][j] = (pixelValueArray[i][j] >> 8) & 0xff;	//we can shift >> 16 OR 0, pareparehas lang naman
-																				//ang R G B values.
-			}
-		} 
-
-		return pixelValueArray;
-	}
-	public static void createStegoImage(int pixelValueArray[][]) {
-		BufferedImage image = new BufferedImage(512, 512, 
-									BufferedImage.TYPE_BYTE_GRAY); 
-		for(int i = 0; i < pixelValueArray.length; i++) {
-			for(int j = 0; j < pixelValueArray[0].length; j++) {
-				int pixelDec = pixelValueArray[i][j];
-				image.setRGB(i, j,  (pixelDec << 16) | 							//shift the pixels according to their bit position
-									(pixelDec << 8)  | 							//same values on 0-7, 8-15, 16-23
-									(pixelDec << 0)); 
-			}
-		}
-		File imageFile = new File("stegoImage.bmp");
-		try {
-			ImageIO.write(image, "bmp", imageFile);
-			System.out.println("success printed @: "+System.getProperty("user.dir"));
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
-		
-	}
-	public static List<Block> pixelDivision(int[][] stegoGrid){
-		List<Block> blocks = new ArrayList<>();
-		for(int i = 0; i < stegoGrid.length; i++){
-			for(int j = 0; j < stegoGrid[0].length - 2; j += 3){
-				Block block = new Block(stegoGrid[j][i], stegoGrid[j+1][i], stegoGrid[j+2][i], j+1, i);
-				blocks.add(block);
-			}
-		}
-		return blocks;
 	}
 	
 	public static void embedBlock(Block block, MessageHelper secretMessage, int[][] rangeTable) {
@@ -226,7 +183,7 @@ public class ARC_Algo { 	//TODO better array to image and vice versa ((no loss d
 			embeddableSecretBits[i] = (i <= 3) ? 
 					(int)Math.round((Math.log(rangeTable[1][i]-rangeTable[0][i]) / Math.log(2))): 
 					(int)Math.round((Math.log(rangeTable[0][i]) / Math.log(2)));
-			System.out.print(embeddableSecretBits[i] + " ");
+			//System.out.print(embeddableSecretBits[i] + " ");
 		}
 		return embeddableSecretBits;
 	}
@@ -296,5 +253,68 @@ public class ARC_Algo { 	//TODO better array to image and vice versa ((no loss d
 		}
 		return Integer.toString(i);
 	}
+
+	public int[][] getImageGrid() {
+		return imageGrid;
+	}
+
+	public void setImageGrid(int[][] imageGrid) {
+		this.imageGrid = imageGrid;
+	}
+
+	public MessageHelper getSecretMessage() {
+		return secretMessage;
+	}
+
+	public void setSecretMessage(MessageHelper secretMessage) {
+		this.secretMessage = secretMessage;
+	}
 	
+//	public static void main(String[] args) throws IOException {
+//		int[][] rangeTable = 	{{0,8,16,32,64}, 	//lj
+//							     {7,15,31,63,255}, 	//uj
+//								 {0,0,0,0,0}};		//tj
+//		//input
+//		BufferedImage image = ImageHelper.getImage("lena_gray.bmp");
+//		
+//		int[][] stegoGrid = new int[image.getHeight()][image.getWidth()];	//initialize array
+//		stegoGrid = ImageHelper.getImagePixelValues(image, stegoGrid); 	//module 2 || [col][row]
+//		MessageHelper secretMessage = new MessageHelper("toEmbed.txt"); 	//module 3
+//		
+//		embedTableClue(stegoGrid[0][0], imageClassification(stegoGrid)); 	//preprocess, true if smooth, else false
+//		
+//		List<Block> blocks = ImageHelper.pixelDivision(stegoGrid);						//pixel division
+//		rangeTable[2] = getEmbeddableBits(rangeTable);
+//		int gg = 0;
+//		for(int i = 0; i < blocks.size(); i++){			//embedding phase
+//			if(secretMessage.getCurrentBit() <= secretMessage.getFinalBit()){
+//				embedBlock(blocks.get(i), secretMessage, rangeTable);
+//				gg++;
+//			}
+//		}
+//		updateGrid(stegoGrid, blocks);
+//		ImageHelper.createStegoImage(stegoGrid, "ARCStegoImage");
+//		
+//		//extraction
+//		BufferedImage stegoImage = ImageHelper.getImage("stegoImage.bmp");
+//		int[][] embeddedStegoGrid = new int[stegoImage.getHeight()][stegoImage.getWidth()];
+//		embeddedStegoGrid = ImageHelper.getImagePixelValues(stegoImage, embeddedStegoGrid);
+//		List<Block> embeddedBlocks = ImageHelper.pixelDivision(embeddedStegoGrid);
+//		
+//		String embeddedSecretMessage = "";
+//		for(int i = 0; i < gg; i++) { //TODO when to stop
+////			System.out.println(i);
+//			embeddedSecretMessage += extractBlock(blocks.get(i), rangeTable);
+//		}
+//		printBlockInfo(blocks, blocks, "embeddedBlocks");
+//		//testing(blocks, embeddedBlocks);
+//		
+//		BufferedWriter writer = new BufferedWriter(new OutputStreamWriter
+//				(new FileOutputStream("secMess.txt"), "utf-8"));
+//		writer.write(embeddedSecretMessage);
+//		writer.flush();
+//		writer.close();
+//		
+//		System.out.println(MessageHelper.binaryToASCII("secMess.txt"));
+//	}
 }
