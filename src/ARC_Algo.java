@@ -19,6 +19,7 @@ public class ARC_Algo { 	//TODO better array to image and vice versa ((no loss d
 	private MessageHelper secretMessage;				//converted text file ((binary))
 	private List<Block> blocks;
 	int counter = 0;									//temp stopper for extraction
+	
 	ARC_Algo(int[][] imageGrid, MessageHelper secretMessage) {	//constructor
 		this.imageGrid = imageGrid;
 		this.secretMessage = secretMessage;
@@ -37,12 +38,12 @@ public class ARC_Algo { 	//TODO better array to image and vice versa ((no loss d
 				counter++;
 			}
 		}
-		printBlockInfo(blocks, blocks, "BlocksInfoEmbedded");
+		printBlockInfo(blocks, blocks, "ARCBlocksInfoEmbedded");
 		updateGrid(imageGrid, blocks);
 		ImageHelper.createStegoImage(imageGrid, "ARCStegoImage");
 	}
 	
-	public void extractMessage(BufferedImage stegoImage) throws IOException {
+	public void extractMessage(BufferedImage stegoImage, String algo) throws IOException {
 		int[][] embeddedStegoGrid = new int[stegoImage.getHeight()][stegoImage.getWidth()];
 		embeddedStegoGrid = ImageHelper.getImagePixelValues(stegoImage, embeddedStegoGrid);
 		int[][] rangeTable = (isTableA(embeddedStegoGrid[0][0])) ? rangeTableA : rangeTableB;
@@ -51,10 +52,10 @@ public class ARC_Algo { 	//TODO better array to image and vice versa ((no loss d
 		for(int i = 1; i < counter; i++) {
 			embeddedSecretMessage += extractBlock(embeddedBlocks.get(i), rangeTable);
 		}
-		printBlockInfo(embeddedBlocks, embeddedBlocks, "BlocksInfoExtracted");
+		printBlockInfo(embeddedBlocks, embeddedBlocks, "ARCBlocksInfoExtracted");
 		//testing(blocks, embeddedBlocks);
-		MessageHelper.writeMessage(embeddedSecretMessage);
-		System.out.println(MessageHelper.binaryToASCII("ExtractedMessageBinary.txt"));
+		MessageHelper.writeMessage(embeddedSecretMessage, algo);
+		System.out.println(MessageHelper.binaryToASCII("ARCExtractedMessageBinary.txt", algo));
 	}
 	
 	

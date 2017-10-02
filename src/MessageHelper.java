@@ -10,28 +10,12 @@ public class MessageHelper {
 	private static BitSet bitset = null;
 	private int currentBit = 0;
 	private int finalBit = 0;
+	private static String algo;
 	
-	MessageHelper() {
-		
-	}
-	MessageHelper(String filename) {
-		try {
-			messageToBinary(filename);
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
+	MessageHelper(String algo) {
+		MessageHelper.algo = algo;
 	}
 	
-	MessageHelper(int a) {
-		String tester = "10010010110111";
-		bitset =  new BitSet(tester.length());
-		for(int i= 0; i < tester.length(); i++) {
-			if (tester.charAt(i) == '1') {
-	            bitset.set(i);
-	        }
-		}
-	}
 	public void messageToBinary(String fileName) throws IOException {
 		String binaryMessage = "";
 		String messChar = getFile(fileName);
@@ -53,8 +37,9 @@ public class MessageHelper {
 	        }
 		}
 		this.finalBit = bitset.length();
+		String filename = (algo.equals("KF")) ? "KFtoEmbedBinary.txt" : "ARCtoEmbedBinary.txt";
 		try (BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(
-				new FileOutputStream("toEmbedBinary.txt"), "utf-8"))) {
+				new FileOutputStream(filename), "utf-8"))) {
 			writer.write(binaryMessage);
 			writer.flush();
 		}
@@ -102,16 +87,16 @@ public class MessageHelper {
 		return output;
 	} 
 	
-	public static String binaryToASCII(String fileName) throws IOException {
+	public static String binaryToASCII(String fileName, String algo) throws IOException {
 		String[] binValues = splitBitStream(fileName);
 		String output = "";
 		for(int i = 0; i < binValues.length - 1; i++) {
 			int charCode = Integer.parseInt(binValues[i], 2);
 			output += (char)charCode;
 		}
-		
+		String filename = (algo.equals("KF")) ? "KFExtractedMessageASCII.txt" : "ARCExtractedMessageASCII.txt";
 		BufferedWriter writer = new BufferedWriter(new OutputStreamWriter
-				(new FileOutputStream("ExtractedMessageASCII.txt"), "utf-8"));
+				(new FileOutputStream(filename), "utf-8"));
 		writer.write(output);
 		writer.flush();
 		writer.close();
@@ -136,9 +121,11 @@ public class MessageHelper {
 		return secretBits;
 	}
 	
-	public static void writeMessage(String embeddedSecretMessage) throws IOException{
+	public static void writeMessage(String embeddedSecretMessage, String algo) throws IOException{
+		String fileName = (algo.equals("KF")) ? "KFExtractedMessageBinary.txt" : "ARCExtractedMessageBinary.txt";
+		System.out.println(fileName);
 		BufferedWriter writer = new BufferedWriter(new OutputStreamWriter
-				(new FileOutputStream("ExtractedMessageBinary.txt"), "utf-8"));
+				(new FileOutputStream(fileName), "utf-8"));
 		writer.write(embeddedSecretMessage);
 		writer.flush();
 		writer.close();

@@ -8,7 +8,7 @@ import java.io.FileOutputStream;
 public class SteganographyTest {
 	
 	public static int[][] stegoGrid = new int[512][512];
-	static MessageHelper secretMessage = new MessageHelper("test.txt");					//Scan Message
+	static MessageHelper secretMessage = new MessageHelper("test");					//Scan Message
 	
 	public static void main(String[] args) throws IOException {
 		//TODO RANGE TABLE 1
