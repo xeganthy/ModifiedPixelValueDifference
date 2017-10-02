@@ -8,12 +8,12 @@ import java.util.List;
 public class ARC_Algo { 	//TODO better array to image and vice versa ((no loss dapat))
 							//TODO tests for 512 and 256 images
 							//TODO when to stop extracting
-	int[][] rangeTableA = 	{{0,8,16,32,64}, 	//lj; TABLE FOR SMOOTH
-		     				{7,15,31,63,255}, 	//uj
-		     				{0,0,0,0,0}};		//tj
-	int[][] rangeTableB = 	{{0,8,16,32,64}, 	//lj; TABLE FOR EDGY
-		     				{7,15,31,63,255}, 	//uj
-		     				{0,0,0,0,0}};		//tj
+	int[][] rangeTableA = 	{{0,8,16,24,32,48,64,128}, 	//lj; TABLE FOR SMOOTH
+		     				{7,15,23,31,47,63,127,255}, 	//uj
+		     				{3,3,3,3,4,4,5,6}};		//tj
+	int[][] rangeTableB = 	{{0,16,32,64,128,192}, 	//lj; TABLE FOR EDGY
+		     				{15,31,63,127,191,255}, 	//uj
+		     				{4,4,5,5,5,5}};		//tj
 	
 	private int[][] imageGrid;							//each element has the equivalent pixel value ((decimal))
 	private MessageHelper secretMessage;				//converted text file ((binary))
@@ -23,13 +23,14 @@ public class ARC_Algo { 	//TODO better array to image and vice versa ((no loss d
 	ARC_Algo(int[][] imageGrid, MessageHelper secretMessage) {	//constructor
 		this.imageGrid = imageGrid;
 		this.secretMessage = secretMessage;
-		rangeTableA[2] = getEmbeddableBits(rangeTableA);
-		rangeTableB[2] = getEmbeddableBits(rangeTableB);
+//		rangeTableA[2] = getEmbeddableBits(rangeTableA);
+//		rangeTableB[2] = getEmbeddableBits(rangeTableB);
 	}
 	
 	public void embedImage() throws IOException {
 		boolean isSmooth = imageClassification(imageGrid); 	//Module 1
-		int[][] rangeTable = (isSmooth) ? rangeTableA : rangeTableB; 
+//		int[][] rangeTable = (isSmooth) ? rangeTableA : rangeTableB; 
+		int[][] rangeTable = rangeTableB; 
 		embedTableClue(imageGrid[0][0], isSmooth);				//Module 2
 		blocks = ImageHelper.pixelDivision(imageGrid);				//Module 3
 		for(int i = 1; i < blocks.size(); i++){			//embedding phase
@@ -40,7 +41,7 @@ public class ARC_Algo { 	//TODO better array to image and vice versa ((no loss d
 		}
 		printBlockInfo(blocks, blocks, "ARCBlocksInfoEmbedded");
 		updateGrid(imageGrid, blocks);
-		ImageHelper.createStegoImage(imageGrid, "ARCStegoImage");
+		ImageHelper.createStegoImage(imageGrid, "ARCStegoImageTest2");
 	}
 	
 	public void extractMessage(BufferedImage stegoImage, String algo) throws IOException {
@@ -178,16 +179,16 @@ public class ARC_Algo { 	//TODO better array to image and vice versa ((no loss d
 	public static int getLeastSignificantBit(int embeddedPixel, int bitsToGet) {
 		return (byte) (embeddedPixel & ((1 << bitsToGet) - 1));
 	}
-	public static int[] getEmbeddableBits(int[][] rangeTable) {
-		int[] embeddableSecretBits = new int[rangeTable[0].length];
-		for(int i = 0; i < rangeTable[0].length; i++) {
-			embeddableSecretBits[i] = (i <= 3) ? 
-					(int)Math.round((Math.log(rangeTable[1][i]-rangeTable[0][i]) / Math.log(2))): 
-					(int)Math.round((Math.log(rangeTable[0][i]) / Math.log(2)));
-			//System.out.print(embeddableSecretBits[i] + " ");
-		}
-		return embeddableSecretBits;
-	}
+//	public static int[] getEmbeddableBits(int[][] rangeTable) {
+//		int[] embeddableSecretBits = new int[rangeTable[0].length];
+//		for(int i = 0; i < rangeTable[0].length; i++) {
+//			embeddableSecretBits[i] = (i <= 3) ? 
+//					(int)Math.round((Math.log(rangeTable[1][i]-rangeTable[0][i]) / Math.log(2))): 
+//					(int)Math.round((Math.log(rangeTable[0][i]) / Math.log(2)));
+//			//System.out.print(embeddableSecretBits[i] + " ");
+//		}
+//		return embeddableSecretBits;
+//	}
 	
 	public static int extractPVD(String dir, int diff, int[][] rangeTable, Block block) {
 		if(dir.equals("left")) {
