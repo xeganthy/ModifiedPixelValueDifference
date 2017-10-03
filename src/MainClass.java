@@ -24,7 +24,7 @@ public class MainClass {
 		BufferedImage kFStegoImage = ImageHelper.getImage("/home/renzo/git/ModifiedPixelValueDifference/KFStegoImage.bmp");
 		
 		arc.extractMessage(arcStegoImage, "ARC");
-		khodFaez.extractMessage(kFStegoImage, "KF");
+		//khodFaez.extractMessage(kFStegoImage, "KF");
 	}
 
 }

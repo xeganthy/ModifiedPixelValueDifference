@@ -44,13 +44,14 @@ public class ARC_Algo { 	//TODO better array to image and vice versa ((no loss d
 	}
 	
 	public void extractMessage(BufferedImage stegoImage, String algo) throws IOException {
+		System.out.println(counter);
 		int[][] embeddedStegoGrid = new int[stegoImage.getHeight()][stegoImage.getWidth()];
 		embeddedStegoGrid = ImageHelper.getImagePixelValues(stegoImage, embeddedStegoGrid);
 		int[][] rangeTable = (isTableA(embeddedStegoGrid[0][0])) ? rangeTableA : rangeTableB;
 		List<Block> embeddedBlocks = ImageHelper.pixelDivision(embeddedStegoGrid);
 		String embeddedSecretMessage = "";
 		for(int i = 1; i < counter; i++) {
-			embeddedSecretMessage += extractBlock(embeddedBlocks.get(i), rangeTable);
+			embeddedSecretMessage += extractBlock(blocks.get(i), rangeTable);
 		}
 		printBlockInfo(embeddedBlocks, embeddedBlocks, "ARCBlocksInfoExtracted");
 		//testing(blocks, embeddedBlocks);

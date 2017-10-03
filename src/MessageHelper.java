@@ -37,6 +37,7 @@ public class MessageHelper {
 	        }
 		}
 		this.finalBit = bitset.length();
+		System.out.println(finalBit);
 		String filename = (algo.equals("KF")) ? "KFtoEmbedBinary.txt" : "ARCtoEmbedBinary.txt";
 		try (BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(
 				new FileOutputStream(filename), "utf-8"))) {
@@ -55,10 +56,7 @@ public class MessageHelper {
 		    String line= br.readLine();;
 		    while (line != null) {
 		        sb.append(line);
-		       
-		        sb.append('\n');
 		        line = br.readLine();
-		        
 		    }
 		     everything = sb.toString();
 		     

@@ -40,10 +40,10 @@ public class ImageHelper {
 									(pixelDec << 0)); 
 			}
 		}
-		RenderedImage rendImage = image;
+//		RenderedImage rendImage = image;
 		File imageFile = new File(fileName+".bmp");
 		try {
-			ImageIO.write(rendImage, "bmp", imageFile);
+			ImageIO.write(image, "bmp", imageFile);
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
