@@ -30,7 +30,7 @@ public class KhodFaez_Algo { //TODO better array to image and vice versa ((no lo
 		}
 		printBlockInfo(blocks, blocks, "KFBlocksInfoEmbedded");
 		updateGrid(imageGrid, blocks);
-		ImageHelper.createStegoImage(imageGrid, "KFStegoImage");
+		ImageHelper.createStegoImage(imageGrid, "KFStegoImageTest1");
 	}
 	
 	public void extractMessage(BufferedImage stegoImage, String algo) throws IOException {
