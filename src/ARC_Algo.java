@@ -29,35 +29,41 @@ public class ARC_Algo { 	//TODO better array to image and vice versa ((no loss d
 	
 	public void embedImage() throws IOException {
 		boolean isSmooth = imageClassification(imageGrid); 	//Module 1
-//		int[][] rangeTable = (isSmooth) ? rangeTableA : rangeTableB; 
-		int[][] rangeTable = rangeTableB; 
-		embedTableClue(imageGrid[0][0], isSmooth);				//Module 2
-		blocks = ImageHelper.pixelDivision(imageGrid);				//Module 3
-		for(int i = 1; i < blocks.size(); i++){			//embedding phase
+		int[][] rangeTable = (isSmooth) ? rangeTableA : rangeTableB; 
+		//int[][] rangeTable = rangeTableA; 
+		embedTableClue(imageGrid[0][0], isSmooth);				//Module 2 	NOTE; IF YOU WANT TO USE TABLE A 
+																//			JUST PLACE THE 2ND PARAM TRUE, 
+																//ELSE IF TABLE B FALSE
+		
+		blocks = ImageHelper.pixelDivision(imageGrid);			//Module 3
+		for(int i = 1; i < blocks.size(); i++){				//embedding phase
 			if(secretMessage.getCurrentBit() <= secretMessage.getFinalBit()){
 				embedBlock(blocks.get(i), secretMessage, rangeTable);
 				counter++;
 			}
 		}
-		printBlockInfo(blocks, blocks, "ARCBlocksInfoEmbedded");
+		//printBlockInfo(blocks, blocks, "ARCBlocksInfoEmbedded");
 		updateGrid(imageGrid, blocks);
-		ImageHelper.createStegoImage(imageGrid, "ARCStegoImageTest2");
+		ImageHelper.createStegoImage(imageGrid, "ARCStegoImage");
 	}
 	
 	public void extractMessage(BufferedImage stegoImage, String algo) throws IOException {
-		System.out.println(counter);
 		int[][] embeddedStegoGrid = new int[stegoImage.getHeight()][stegoImage.getWidth()];
 		embeddedStegoGrid = ImageHelper.getImagePixelValues(stegoImage, embeddedStegoGrid);
 		int[][] rangeTable = (isTableA(embeddedStegoGrid[0][0])) ? rangeTableA : rangeTableB;
 		List<Block> embeddedBlocks = ImageHelper.pixelDivision(embeddedStegoGrid);
 		String embeddedSecretMessage = "";
+		int count = 0;
 		for(int i = 1; i < counter; i++) {
-			embeddedSecretMessage += extractBlock(blocks.get(i), rangeTable);
+			embeddedSecretMessage += extractBlock(embeddedBlocks.get(i), rangeTable);
+			if(!embeddedBlocks.get(i).equals(blocks.get(i))){
+				count++;
+			}
 		}
-		printBlockInfo(embeddedBlocks, embeddedBlocks, "ARCBlocksInfoExtracted");
+		//printBlockInfo(embeddedBlocks, embeddedBlocks, "ARCBlocksInfoExtracted");
 		//testing(blocks, embeddedBlocks);
-		MessageHelper.writeMessage(embeddedSecretMessage, algo);
-		System.out.println(MessageHelper.binaryToASCII("ARCExtractedMessageBinary.txt", algo));
+		//MessageHelper.writeMessage(embeddedSecretMessage, algo);
+		MessageHelper.binaryToASCII("ARCExtractedMessageBinary.txt", algo, embeddedSecretMessage);
 	}
 	
 	
@@ -68,11 +74,17 @@ public class ARC_Algo { 	//TODO better array to image and vice versa ((no loss d
 	}
 	
 	public static void embedTableClue(int pixel, boolean isSmooth) {
+		System.out.println(Integer.toBinaryString(pixel));
 		if(isSmooth) {
 			//embed on pix; 0
+			
+			pixel = replaceLeastSignificantBit(pixel, 0, 0);
 		} else {
 			//embed on pix
+			pixel = replaceLeastSignificantBit(pixel, 0, 1);
 		}
+		System.out.println(Integer.toBinaryString(pixel));
+		System.out.println();
 	}
 	
 	public static boolean isTableA(int firstPixel){
@@ -125,24 +137,30 @@ public class ARC_Algo { 	//TODO better array to image and vice versa ((no loss d
 		int secretM = Integer.parseInt(secretMessage.getSecretBits(embeddableBits), 2);
 		int newDiff = rangeTable[0][block.getRangeIndex(pixel)] + secretM;
 		
-		int embeddedPixelTemp1 = block.getBasePixel() + newDiff;
-		int embeddedPixelTemp2 = block.getBasePixel() - newDiff;
+		int embeddedPixelTemp1 = block.getBasePixel() - newDiff;
+		int embeddedPixelTemp2 = block.getBasePixel() + newDiff;
 		
 		if(pixel.equals("left")) {
-			if(Math.abs(block.getLeftPixel() - embeddedPixelTemp1) < Math.abs(block.getLeftPixel() - embeddedPixelTemp2)) {
+			if((Math.abs(block.getLeftPixel() - embeddedPixelTemp1) < Math.abs(block.getLeftPixel() - embeddedPixelTemp2)) 
+					&& ((embeddedPixelTemp1 <= 255) && (embeddedPixelTemp1 >= 0))) {
 				return embeddedPixelTemp1;
 			} else {
+				if(((embeddedPixelTemp2 > 255) || (embeddedPixelTemp2 < 0))){
+					return embeddedPixelTemp1;
+				}
 				return embeddedPixelTemp2;
 			}
 		} else { 
-			if(Math.abs(block.getRightPixel() - embeddedPixelTemp1) < Math.abs(block.getRightPixel() - embeddedPixelTemp2)) {
+			if((Math.abs(block.getRightPixel() - embeddedPixelTemp1) < Math.abs(block.getRightPixel() - embeddedPixelTemp2))
+					&& ((embeddedPixelTemp1 <= 255) && (embeddedPixelTemp1 >= 0))) {
 				return embeddedPixelTemp1;
 			} else {
+				if(((embeddedPixelTemp2 > 255) || (embeddedPixelTemp2 < 0))){
+					return embeddedPixelTemp1;
+				}
 				return embeddedPixelTemp2;
 			}
 		}
-		
-		
 	}
 	public static int locateTableRange(int diff, int[][] rangeTable) {
 		int index = 0;
@@ -223,7 +241,7 @@ public class ARC_Algo { 	//TODO better array to image and vice versa ((no loss d
 	}
 	
 	public static String foo(int size, String msg) {
-		while(msg.length() != size) {
+		while(msg.length() != size && msg.length() <= size) {
 			msg = '0'+msg;
 		}
 		return msg;

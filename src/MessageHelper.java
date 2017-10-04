@@ -36,8 +36,8 @@ public class MessageHelper {
 	            bitset.set(i);
 	        }
 		}
-		this.finalBit = bitset.length();
-		System.out.println(finalBit);
+		this.finalBit = bitset.length()+1;
+		//System.out.println(finalBit);
 		String filename = (algo.equals("KF")) ? "KFtoEmbedBinary.txt" : "ARCtoEmbedBinary.txt";
 		try (BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(
 				new FileOutputStream(filename), "utf-8"))) {
@@ -56,7 +56,8 @@ public class MessageHelper {
 		    String line= br.readLine();;
 		    while (line != null) {
 		        sb.append(line);
-		        line = br.readLine();
+	        	sb.append("\n");
+	        	line = br.readLine();
 		    }
 		     everything = sb.toString();
 		     
@@ -66,35 +67,52 @@ public class MessageHelper {
 		}
 	}
 	
-	public static String[] splitBitStream(String fileName) throws IOException {
-		String bitstream;
-		BufferedReader br = new BufferedReader(new FileReader(fileName));
-		try{
-			StringBuilder sb = new StringBuilder();
-			String line = br.readLine();
-			while(line != null) {
-				sb.append(line);
-				sb.append('\n');
-				line = br.readLine();
-			}
-				bitstream = sb.toString();
-		} finally {
-			br.close();
-		}
-		String output[] = bitstream.split("(?<=\\G.{8})");
-		return output;
-	} 
+//	public static String[] splitBitStream(String fileName) throws IOException {
+//		String bitstream;
+//		BufferedReader br = new BufferedReader(new FileReader(fileName));
+//		try{
+//			StringBuilder sb = new StringBuilder();
+//			String line = br.readLine();
+//			while(line != null) {
+//				sb.append(line);
+//				line = br.readLine();
+//			}
+//				bitstream = sb.toString();
+//		} finally {
+//			br.close();
+//		}
+//		String output[] = splitStringEvery(bitstream, 8);
+//		return output;
+//	} 
 	
-	public static String binaryToASCII(String fileName, String algo) throws IOException {
-		String[] binValues = splitBitStream(fileName);
+	public static String[] splitStringEvery(String s, int interval) {
+	    int arrayLength = (int) Math.ceil(((s.length() / (double)interval)));
+	    String[] result = new String[arrayLength];
+	    String res = "";
+	    int j = 0;
+	    int lastIndex = result.length - 1;
+	    for (int i = 0; i < lastIndex; i++) {
+	        result[i] = s.substring(j, j + interval);
+	        res += result[i];
+	        j += interval;
+	    } //Add the last bit
+	    //if(s.substring(j).length() == interval)
+	    //	result[lastIndex] = s.substring(j);
+	    //System.out.println(res);
+	    return result;
+	}
+	
+	public static String binaryToASCII(String fileName, String algo, String bitstream) throws IOException {
+		String[] binValues = splitStringEvery(bitstream, 8);
 		String output = "";
 		for(int i = 0; i < binValues.length - 1; i++) {
 			int charCode = Integer.parseInt(binValues[i], 2);
-			output += (char)charCode;
+			if(charCode != 0)
+				output += (char)charCode;
 		}
 		String filename = (algo.equals("KF")) ? "KFExtractedMessageASCII.txt" : "ARCExtractedMessageASCII.txt";
 		BufferedWriter writer = new BufferedWriter(new OutputStreamWriter
-				(new FileOutputStream(filename), "utf-8"));
+				(new FileOutputStream(filename), "UTF-8"));
 		writer.write(output);
 		writer.flush();
 		writer.close();
@@ -121,12 +139,12 @@ public class MessageHelper {
 	
 	public static void writeMessage(String embeddedSecretMessage, String algo) throws IOException{
 		String fileName = (algo.equals("KF")) ? "KFExtractedMessageBinary.txt" : "ARCExtractedMessageBinary.txt";
-		System.out.println(fileName);
 		BufferedWriter writer = new BufferedWriter(new OutputStreamWriter
 				(new FileOutputStream(fileName), "utf-8"));
 		writer.write(embeddedSecretMessage);
 		writer.flush();
 		writer.close();
+		System.out.println("extractedMessageBin");
 	}
 	
 	public String peekSecretBits(int numberToRead) {

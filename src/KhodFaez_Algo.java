@@ -16,6 +16,7 @@ public class KhodFaez_Algo { //TODO better array to image and vice versa ((no lo
 	private int[][] imageGrid;					//each element has the equivalent pixel value ((decimal))
 	private MessageHelper secretMessage;		//converted text file ((binary))
 	private List<Block> blocks;
+	private List<Block> embeddedBlocks;
 	int counter = 0;							//temp stopper for extraction
 	
 
@@ -30,20 +31,29 @@ public class KhodFaez_Algo { //TODO better array to image and vice versa ((no lo
 		}
 		printBlockInfo(blocks, blocks, "KFBlocksInfoEmbedded");
 		updateGrid(imageGrid, blocks);
-		ImageHelper.createStegoImage(imageGrid, "KFStegoImageTest1");
+		ImageHelper.createStegoImage(imageGrid, "KFStegoImage");
 	}
 	
+	public void setEmbeddedBlocks(int[][] embeddedStegoGrid) {
+		embeddedBlocks = ImageHelper.pixelDivision(embeddedStegoGrid);
+	}
 	public void extractMessage(BufferedImage stegoImage, String algo) throws IOException {
 		int[][] embeddedStegoGrid = new int[stegoImage.getHeight()][stegoImage.getWidth()];
 		embeddedStegoGrid = ImageHelper.getImagePixelValues(stegoImage, embeddedStegoGrid);
-		List<Block> embeddedBlocks = ImageHelper.pixelDivision(embeddedStegoGrid);
-		String embeddedSecretMessage = "";
+		embeddedBlocks = ImageHelper.pixelDivision(embeddedStegoGrid);
+		String embeddedBitStream = "";
+//		int count = 0;
 		for(int i = 0; i < counter; i++) {
-			embeddedSecretMessage += extractBlock(embeddedBlocks.get(i), rangeTable);
+			embeddedBitStream += extractBlock(embeddedBlocks.get(i), rangeTable);
+//			if(!embeddedBlocks.get(i).equals(blocks.get(i))){
+//				count++;
+//			}
 		}
-		printBlockInfo(embeddedBlocks, embeddedBlocks, "KFBlocksInfoExtracted");
-		MessageHelper.writeMessage(embeddedSecretMessage, algo);
-		System.out.println(MessageHelper.binaryToASCII("KFExtractedMessageBinary.txt", algo));
+//		System.out.println(count);
+		//printBlockInfo(embeddedBlocks, embeddedBlocks, "KFBlocksInfoExtracted");
+		//MessageHelper.writeMessage(embeddedBitStream, algo);
+//		System.out.println(MessageHelper.binaryToASCII("KFExtractedMessageBinary.txt", algo));
+		MessageHelper.binaryToASCII("KFExtractedMessageBinary.txt", algo, embeddedBitStream);
 	}
 	
 	KhodFaez_Algo(int[][] imageGrid, MessageHelper secretMessage) {	//constructor
@@ -95,19 +105,26 @@ public class KhodFaez_Algo { //TODO better array to image and vice versa ((no lo
 		int secretM = Integer.parseInt(secretMessage.getSecretBits(embeddableBits), 2);
 		int newDiff = rangeTable[0][block.getRangeIndex(pixel)] + secretM;
 		
-		int embeddedPixelTemp1 = block.getBasePixel() + newDiff;
-		int embeddedPixelTemp2 = block.getBasePixel() - newDiff;
-		
+		int embeddedPixelTemp1 = block.getBasePixel() - newDiff;
+		int embeddedPixelTemp2 = block.getBasePixel() + newDiff;
 		if(pixel.equals("left")) {
-			if(Math.abs(block.getLeftPixel() - embeddedPixelTemp1) < Math.abs(block.getLeftPixel() - embeddedPixelTemp2)) {
+			if((Math.abs(block.getLeftPixel() - embeddedPixelTemp1) < Math.abs(block.getLeftPixel() - embeddedPixelTemp2)) 
+					&& ((embeddedPixelTemp1 <= 255) && (embeddedPixelTemp1 >= 0))) {
 				return embeddedPixelTemp1;
 			} else {
+				if(((embeddedPixelTemp2 > 255) || (embeddedPixelTemp2 < 0))){
+					return embeddedPixelTemp1;
+				}
 				return embeddedPixelTemp2;
 			}
 		} else { 
-			if(Math.abs(block.getRightPixel() - embeddedPixelTemp1) < Math.abs(block.getRightPixel() - embeddedPixelTemp2)) {
+			if((Math.abs(block.getRightPixel() - embeddedPixelTemp1) < Math.abs(block.getRightPixel() - embeddedPixelTemp2))
+					&& ((embeddedPixelTemp1 <= 255) && (embeddedPixelTemp1 >= 0))) {
 				return embeddedPixelTemp1;
 			} else {
+				if(((embeddedPixelTemp2 > 255) || (embeddedPixelTemp2 < 0))){
+					return embeddedPixelTemp1;
+				}
 				return embeddedPixelTemp2;
 			}
 		}
@@ -175,17 +192,13 @@ public class KhodFaez_Algo { //TODO better array to image and vice versa ((no lo
 		
 		int diffL = Math.abs(block.getLeftPixel() - block.getBasePixel());
 		int diffR = Math.abs(block.getRightPixel() - block.getBasePixel());
-		
 		block.setLeftRange(locateTableRange(diffL, rangeTable));
 		block.setRightRange(locateTableRange(diffR, rangeTable));
-		
 		int secretMessageLeft = extractPVD("left", diffL, rangeTable, block);
 		int secretMessageRight = extractPVD("right", diffR, rangeTable, block);
-		
 		String basePixelMessage = foo(3, Integer.toBinaryString(basePixelGet3LSB));
 		String leftPixelMessage = foo(rangeTable[2][block.getLeftRange()], Integer.toBinaryString(secretMessageLeft));
 		String rightPixelMessage = foo(rangeTable[2][block.getRightRange()], Integer.toBinaryString(secretMessageRight));
-		
 		//System.out.println(leftPixelMessage+" "+rangeTable[2][block.getLeftRange()]);
 		//System.out.println(rightPixelMessage+" "+rangeTable[2][block.getRightRange()]);
 		block.setExtracted(basePixelMessage + leftPixelMessage + rightPixelMessage);
@@ -193,7 +206,7 @@ public class KhodFaez_Algo { //TODO better array to image and vice versa ((no lo
 	}
 	
 	public static String foo(int size, String msg) {
-		while(msg.length() != size) {
+		while(msg.length() != size && msg.length() <= size) {
 			msg = '0'+msg;
 		}
 		return msg;

@@ -134,6 +134,17 @@ public class Block {
 		this.yr = y;
 	}
 	
+	public boolean equals(Block b) {
+		if(this.leftPixel == b.getLeftPixel() && this.basePixel == b.getBasePixel() && this.rightPixel == b.getRightPixel())
+			return true;
+		else{
+			System.out.println(this.leftPixel+" "+this.basePixel+" "+this.rightPixel);
+			System.out.println(b.getLeftPixel()+" "+b.getBasePixel()+" "+b.getRightPixel());
+			return false;
+		}
+			
+	}
+	
 	public String toString() {
 		return "L: "+leftPixel+" "+"B: "+basePixel+" R: "+rightPixel;
 	}
