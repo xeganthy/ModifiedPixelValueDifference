@@ -6,6 +6,8 @@ import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Scanner;
+
 import javax.imageio.ImageIO;
 
 public class KhodFaez_Algo { //TODO better array to image and vice versa ((no loss dapat))
@@ -31,7 +33,10 @@ public class KhodFaez_Algo { //TODO better array to image and vice versa ((no lo
 		}
 		printBlockInfo(blocks, blocks, "KFBlocksInfoEmbedded");
 		updateGrid(imageGrid, blocks);
-		ImageHelper.createStegoImage(imageGrid, "KFStegoImage");
+		System.out.println("Enter khoez file name:");
+		Scanner sc = new Scanner(System.in);
+		String khoezFile = sc.nextLine();
+		ImageHelper.createStegoImage(imageGrid, khoezFile);
 	}
 	
 	public void setEmbeddedBlocks(int[][] embeddedStegoGrid) {

@@ -4,6 +4,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.util.List;
+import java.util.Scanner;
 
 public class ARC_Algo { 	//TODO better array to image and vice versa ((no loss dapat))
 							//TODO tests for 512 and 256 images
@@ -44,7 +45,10 @@ public class ARC_Algo { 	//TODO better array to image and vice versa ((no loss d
 		}
 		//printBlockInfo(blocks, blocks, "ARCBlocksInfoEmbedded");
 		updateGrid(imageGrid, blocks);
-		ImageHelper.createStegoImage(imageGrid, "ARCStegoImage");
+		System.out.println("Enter arcStegoImage file name: ");
+		Scanner sc = new Scanner(System.in);
+		String arcFile = sc.nextLine();
+		ImageHelper.createStegoImage(imageGrid, arcFile);
 	}
 	
 	public void extractMessage(BufferedImage stegoImage, String algo) throws IOException {
@@ -67,10 +71,28 @@ public class ARC_Algo { 	//TODO better array to image and vice versa ((no loss d
 	}
 	
 	
-	public static boolean imageClassification(int[][] stegoGrid) { //TODO
+	public boolean imageClassification(int[][] stegoGrid) { //TODO
+		int threshold = 50;		//threshold for testing
+		int smoothCtr = 0;
+		int edgeCtr = 0;
 		
-		
-		return true;
+		for(int i = 0; i < stegoGrid.length; i++) {
+			for(int j = 0; j < stegoGrid[0].length-1; j++) {
+				if(Math.abs(stegoGrid[i][j]-stegoGrid[i][j+1])>threshold){
+					smoothCtr++;
+				}else{
+					edgeCtr++;
+				}
+			}
+		}
+		System.out.println("smooth "+smoothCtr+" edge "+edgeCtr);
+		if(smoothCtr>edgeCtr){
+			System.out.println("is smooth");
+			return true;
+		}else{
+			System.out.println("is edgy");
+			return false;
+		}
 	}
 	
 	public static void embedTableClue(int pixel, boolean isSmooth) {

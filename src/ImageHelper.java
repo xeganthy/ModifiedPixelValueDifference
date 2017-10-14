@@ -1,7 +1,5 @@
 import java.awt.Graphics2D;
 import java.awt.image.BufferedImage;
-import net.sf.image4j.*;
-import net.sf.image4j.codec.bmp.BMPEncoder;
 
 import java.io.File;
 import java.io.IOException;
@@ -60,7 +58,8 @@ public class ImageHelper {
 //
 //		image = trueColor;
 //		RenderedImage rendImage = image;
-		File imageFile = new File(fileName+".bmp");
+		String path="/Users/MARK ANTONIO/Documents/GitHub/ModifiedPixelValueDifference/stego_Images/"+fileName+".bmp";
+		File imageFile = new File(path);
 		try {
 			ImageIO.write(image, "bmp", imageFile);
 		} catch (IOException e) {

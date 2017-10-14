@@ -1,15 +1,29 @@
 import java.awt.image.BufferedImage;
+import java.util.Scanner;
 
 public class MetricsCalculator {
 	
 	public static void main(String[] args) {
-		BufferedImage originalImage = ImageHelper.getImage("/Users/MARK ANTONIO/Documents/GitHub/ModifiedPixelValueDifference/lena_gray.bmp");				//bmp image
+		Scanner sc = new Scanner(System.in);
+		System.out.println("Enter original image file name: ");
+		String originalFile = sc.nextLine();
+		System.out.println("Enter Arc Image file name: ");
+		String arcFile = sc.nextLine();
+		System.out.println("Enter Khoez Image file name: ");
+		String khoFile = sc.nextLine();
+		
+		BufferedImage originalImage = ImageHelper.getImage("/Users/MARK ANTONIO/Documents/GitHub/ModifiedPixelValueDifference/original_Images/"+originalFile+".bmp");				//bmp image
 		int[][] origImage = new int[originalImage.getHeight()][originalImage.getWidth()];	
 		origImage = ImageHelper.getImagePixelValues(originalImage, origImage);
-		BufferedImage arcStegoImage = ImageHelper.getImage("/Users/MARK ANTONIO/Documents/GitHub/ModifiedPixelValueDifference/ARCStegoImageTest2.bmp");
-		int[][] stegoImage = new int[arcStegoImage.getHeight()][arcStegoImage.getWidth()];	
-		stegoImage = ImageHelper.getImagePixelValues(arcStegoImage, stegoImage); 
-		System.out.println(calculatePSNR(origImage, stegoImage));
+		BufferedImage arcStegoImage = ImageHelper.getImage("/Users/MARK ANTONIO/Documents/GitHub/ModifiedPixelValueDifference/stego_Images/"+arcFile+".bmp");
+		int[][] arcstegoImage = new int[arcStegoImage.getHeight()][arcStegoImage.getWidth()];	
+		arcstegoImage = ImageHelper.getImagePixelValues(arcStegoImage, arcstegoImage); 
+		BufferedImage khoezStegoImage = ImageHelper.getImage("/Users/MARK ANTONIO/Documents/GitHub/ModifiedPixelValueDifference/stego_Images/"+khoFile+".bmp");
+		int[][] khoezstegoImage = new int[arcStegoImage.getHeight()][arcStegoImage.getWidth()];	
+		khoezstegoImage = ImageHelper.getImagePixelValues(khoezStegoImage, khoezstegoImage); 
+		
+		System.out.println("ARC image PSNR: "+calculatePSNR(origImage, arcstegoImage));
+		System.out.println("Khoez image PSNR: "+calculatePSNR(origImage, khoezstegoImage));
 		
 	}
 	
