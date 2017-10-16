@@ -32,7 +32,7 @@ public class ARC_Algo { 	//TODO better array to image and vice versa ((no loss d
 		boolean isSmooth = imageClassification(imageGrid); 	//Module 1
 		int[][] rangeTable = (isSmooth) ? rangeTableA : rangeTableB; 
 		//int[][] rangeTable = rangeTableA; 
-		embedTableClue(imageGrid[0][0], isSmooth);				//Module 2 	NOTE; IF YOU WANT TO USE TABLE A 
+		imageGrid[0][0] = embedTableClue(imageGrid[0][0], isSmooth);				//Module 2 	NOTE; IF YOU WANT TO USE TABLE A 
 																//			JUST PLACE THE 2ND PARAM TRUE, 
 																//ELSE IF TABLE B FALSE
 		
@@ -95,7 +95,7 @@ public class ARC_Algo { 	//TODO better array to image and vice versa ((no loss d
 		}
 	}
 	
-	public static void embedTableClue(int pixel, boolean isSmooth) {
+	public static int embedTableClue(int pixel, boolean isSmooth) {
 		System.out.println(Integer.toBinaryString(pixel));
 		if(isSmooth) {
 			//embed on pix; 0
@@ -107,6 +107,7 @@ public class ARC_Algo { 	//TODO better array to image and vice versa ((no loss d
 		}
 		System.out.println(Integer.toBinaryString(pixel));
 		System.out.println();
+		return pixel;
 	}
 	
 	public static boolean isTableA(int firstPixel){
