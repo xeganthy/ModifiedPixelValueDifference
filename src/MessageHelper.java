@@ -110,9 +110,10 @@ public class MessageHelper {
 			if(charCode != 0)
 				output += (char)charCode;
 		}
-		String filename = (algo.equals("KF")) ? "KFExtractedMessageASCII.txt" : "ARCExtractedMessageASCII.txt";
+//		String filename = (algo.equals("KF")) ? "KFExtractedMessageASCII.txt" : "ARCExtractedMessageASCII.txt";
+		String path="/Users/MARK ANTONIO/Documents/GitHub/ModifiedPixelValueDifference/extracted_Messages/"+fileName+".txt";
 		BufferedWriter writer = new BufferedWriter(new OutputStreamWriter
-				(new FileOutputStream(filename), "UTF-8"));
+				(new FileOutputStream(path), "UTF-8"));
 		writer.write(output);
 		writer.flush();
 		writer.close();

@@ -51,7 +51,7 @@ public class ARC_Algo { 	//TODO better array to image and vice versa ((no loss d
 		ImageHelper.createStegoImage(imageGrid, arcFile);
 	}
 	
-	public void extractMessage(BufferedImage stegoImage, String algo) throws IOException {
+	public void extractMessage(BufferedImage stegoImage, String algo, String fileName) throws IOException {
 		int[][] embeddedStegoGrid = new int[stegoImage.getHeight()][stegoImage.getWidth()];
 		embeddedStegoGrid = ImageHelper.getImagePixelValues(stegoImage, embeddedStegoGrid);
 		int[][] rangeTable = (isTableA(embeddedStegoGrid[0][0])) ? rangeTableA : rangeTableB;
@@ -67,18 +67,18 @@ public class ARC_Algo { 	//TODO better array to image and vice versa ((no loss d
 		//printBlockInfo(embeddedBlocks, embeddedBlocks, "ARCBlocksInfoExtracted");
 		//testing(blocks, embeddedBlocks);
 		//MessageHelper.writeMessage(embeddedSecretMessage, algo);
-		MessageHelper.binaryToASCII("ARCExtractedMessageBinary.txt", algo, embeddedSecretMessage);
+		MessageHelper.binaryToASCII(fileName, algo, embeddedSecretMessage);
 	}
 	
 	
 	public boolean imageClassification(int[][] stegoGrid) { //TODO
-		int threshold = 50;		//threshold for testing
+		int threshold = 150;		//threshold for testing
 		int smoothCtr = 0;
 		int edgeCtr = 0;
 		
 		for(int i = 0; i < stegoGrid.length; i++) {
 			for(int j = 0; j < stegoGrid[0].length-1; j++) {
-				if(Math.abs(stegoGrid[i][j]-stegoGrid[i][j+1])>threshold){
+				if(Math.abs(stegoGrid[i][j]-stegoGrid[i][j+1])<threshold){
 					smoothCtr++;
 				}else{
 					edgeCtr++;

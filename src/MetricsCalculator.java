@@ -32,7 +32,7 @@ public class MetricsCalculator {
 		for(int i = 0; i < origImage.length; i++) {
 			for(int j = 0; j < origImage[0].length; j++) {
 				mse += Math.pow(origImage[i][j]-stegoImage[i][j], 2);
-				System.out.println(origImage[i][j] + "  " + stegoImage[i][j]);
+//				System.out.println(origImage[i][j] + "  " + stegoImage[i][j]);
 			}
 		}
 		int mean = mse/512;

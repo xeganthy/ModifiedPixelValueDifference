@@ -8,11 +8,11 @@ public class MainClass {
 		Scanner sc = new Scanner(System.in);
 		System.out.println("Enter filename: ");
 		String fileName = sc.nextLine();
-//		String imgDir = "/Users/MARK ANTONIO/Documents/GitHub/ModifiedPixelValueDifference/original_Images/"+fileName+".bmp";	//input
-//		String msgDir = "/Users/MARK ANTONIO/Documents/GitHub/ModifiedPixelValueDifference/toEmbed.txt";	//input
+		String imgDir = "/Users/MARK ANTONIO/Documents/GitHub/ModifiedPixelValueDifference/original_Images/"+fileName+".bmp";	//input
+		String msgDir = "/Users/MARK ANTONIO/Documents/GitHub/ModifiedPixelValueDifference/toEmbed.txt";	//input
 		
-		String imgDir = "/home/renzo/git/ModifiedPixelValueDifference/original_Images/"+fileName+".bmp";
-		String msgDir = "/home/renzo/git/ModifiedPixelValueDifference/toEmbed.txt";
+//		String imgDir = "/home/renzo/git/ModifiedPixelValueDifference/original_Images/"+fileName+".bmp";
+//		String msgDir = "/home/renzo/git/ModifiedPixelValueDifference/toEmbed.txt";
 		
 		BufferedImage image = ImageHelper.getImage(imgDir);							//bmp image
 		MessageHelper secretMessage = new MessageHelper("ARC");						//secretMessage ARC
@@ -32,14 +32,24 @@ public class MainClass {
 		KhodFaez_Algo khodFaez = new KhodFaez_Algo(imageGrid2, secretMessage2);
 		khodFaez.embedImage();
 		
-//		String stgImgDirARC = "/Users/MARK ANTONIO/Documents/GitHub/ModifiedPixelValueDifference/ARCStegoImage.bmp"; 	//ARC STEGO IMG
-//		String stgImgDirKF = 	"/Users/MARK ANTONIO/Documents/GitHub/ModifiedPixelValueDifference/KFStegoImage.bmp";	//KF STEGO IMG
-//		BufferedImage arcStegoImage = ImageHelper.getImage(stgImgDirARC);
-//		BufferedImage kFStegoImage = ImageHelper.getImage(stgImgDirKF);
-//
-//		System.out.println("extracting");
-//		arc.extractMessage(arcStegoImage, "ARC");
-//		khodFaez.extractMessage(kFStegoImage, "KF");
+		System.out.println("Enter filename of arc image:");
+		String arcFile = sc.nextLine();
+		System.out.println("Enter filename of kf image:");
+		String kfFile = sc.nextLine();
+		
+		String stgImgDirARC = "/Users/MARK ANTONIO/Documents/GitHub/ModifiedPixelValueDifference/stego_Images/"+arcFile+".bmp"; 	//ARC STEGO IMG
+		String stgImgDirKF = 	"/Users/MARK ANTONIO/Documents/GitHub/ModifiedPixelValueDifference/stego_Images/"+kfFile+".bmp";	//KF STEGO IMG
+		BufferedImage arcStegoImage = ImageHelper.getImage(stgImgDirARC);
+		BufferedImage kFStegoImage = ImageHelper.getImage(stgImgDirKF);
+		
+		System.out.println("Enter filename of arc text file:");
+		String arcMessage = sc.nextLine();
+		System.out.println("Enter filename of kf text file:");
+		String kfMessage =sc.nextLine();
+		
+		System.out.println("extracting");
+		arc.extractMessage(arcStegoImage, "ARC", arcMessage);
+		khodFaez.extractMessage(kFStegoImage, "KF",kfMessage);
 		System.out.println("END");
 	}
 

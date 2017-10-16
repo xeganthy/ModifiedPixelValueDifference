@@ -42,7 +42,7 @@ public class KhodFaez_Algo { //TODO better array to image and vice versa ((no lo
 	public void setEmbeddedBlocks(int[][] embeddedStegoGrid) {
 		embeddedBlocks = ImageHelper.pixelDivision(embeddedStegoGrid);
 	}
-	public void extractMessage(BufferedImage stegoImage, String algo) throws IOException {
+	public void extractMessage(BufferedImage stegoImage, String algo, String fileName) throws IOException {
 		int[][] embeddedStegoGrid = new int[stegoImage.getHeight()][stegoImage.getWidth()];
 		embeddedStegoGrid = ImageHelper.getImagePixelValues(stegoImage, embeddedStegoGrid);
 		embeddedBlocks = ImageHelper.pixelDivision(embeddedStegoGrid);
@@ -58,7 +58,7 @@ public class KhodFaez_Algo { //TODO better array to image and vice versa ((no lo
 		//printBlockInfo(embeddedBlocks, embeddedBlocks, "KFBlocksInfoExtracted");
 		//MessageHelper.writeMessage(embeddedBitStream, algo);
 //		System.out.println(MessageHelper.binaryToASCII("KFExtractedMessageBinary.txt", algo));
-		MessageHelper.binaryToASCII("KFExtractedMessageBinary.txt", algo, embeddedBitStream);
+		MessageHelper.binaryToASCII(fileName, algo, embeddedBitStream);
 	}
 	
 	KhodFaez_Algo(int[][] imageGrid, MessageHelper secretMessage) {	//constructor
