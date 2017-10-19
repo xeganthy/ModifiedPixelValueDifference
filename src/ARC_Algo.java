@@ -28,6 +28,8 @@ public class ARC_Algo { 	//TODO better array to image and vice versa ((no loss d
 //		rangeTableB[2] = getEmbeddableBits(rangeTableB);
 	}
 	
+	
+	
 	public void embedImage() throws IOException {
 		boolean isSmooth = imageClassification(imageGrid); 	//Module 1
 		int[][] rangeTable = (isSmooth) ? rangeTableA : rangeTableB; 
@@ -37,18 +39,40 @@ public class ARC_Algo { 	//TODO better array to image and vice versa ((no loss d
 																//ELSE IF TABLE B FALSE
 		
 		blocks = ImageHelper.pixelDivision(imageGrid);			//Module 3
+		printBlockInfo(blocks, blocks, "ARCBlocksInfoInit");
 		for(int i = 1; i < blocks.size(); i++){				//embedding phase
 			if(secretMessage.getCurrentBit() <= secretMessage.getFinalBit()){
 				embedBlock(blocks.get(i), secretMessage, rangeTable);
 				counter++;
 			}
 		}
-		//printBlockInfo(blocks, blocks, "ARCBlocksInfoEmbedded");
+		printBlockInfo(blocks, blocks, "ARCBlocksInfoEmbedded");
 		updateGrid(imageGrid, blocks);
 		System.out.println("Enter arcStegoImage file name: ");
 		Scanner sc = new Scanner(System.in);
 		String arcFile = sc.nextLine();
 		ImageHelper.createStegoImage(imageGrid, arcFile);
+	}
+	
+	public void embedImage(String fileName) throws IOException {
+		boolean isSmooth = imageClassification(imageGrid); 	//Module 1
+		int[][] rangeTable = (isSmooth) ? rangeTableA : rangeTableB; 
+		//int[][] rangeTable = rangeTableA; 
+		imageGrid[0][0] = embedTableClue(imageGrid[0][0], isSmooth);				//Module 2 	NOTE; IF YOU WANT TO USE TABLE A 
+																//			JUST PLACE THE 2ND PARAM TRUE, 
+																//ELSE IF TABLE B FALSE
+		
+		blocks = ImageHelper.pixelDivision(imageGrid);			//Module 3
+		printBlockInfo(blocks, blocks, "ARCBlocksInfoInit");
+		for(int i = 1; i < blocks.size(); i++){				//embedding phase
+			if(secretMessage.getCurrentBit() <= secretMessage.getFinalBit()){
+				embedBlock(blocks.get(i), secretMessage, rangeTable);
+				counter++;
+			}
+		}
+		printBlockInfo(blocks, blocks, "ARCBlocksInfoEmbedded");
+		updateGrid(imageGrid, blocks);
+		ImageHelper.createStegoImage(imageGrid, fileName);
 	}
 	
 	public void extractMessage(BufferedImage stegoImage, String algo, String fileName) throws IOException {
@@ -59,12 +83,14 @@ public class ARC_Algo { 	//TODO better array to image and vice versa ((no loss d
 		String embeddedSecretMessage = "";
 		int count = 0;
 		for(int i = 1; i < counter; i++) {
+			
 			embeddedSecretMessage += extractBlock(embeddedBlocks.get(i), rangeTable);
 			if(!embeddedBlocks.get(i).equals(blocks.get(i))){
 				count++;
 			}
 		}
-		//printBlockInfo(embeddedBlocks, embeddedBlocks, "ARCBlocksInfoExtracted");
+		System.out.println("arc's pixels inconsistencies count: "+count);
+		printBlockInfo(embeddedBlocks, embeddedBlocks, "ARCBlocksInfoExtracted");
 		//testing(blocks, embeddedBlocks);
 		//MessageHelper.writeMessage(embeddedSecretMessage, algo);
 		MessageHelper.binaryToASCII(fileName, algo, embeddedSecretMessage);
@@ -169,6 +195,16 @@ public class ARC_Algo { 	//TODO better array to image and vice versa ((no loss d
 				return embeddedPixelTemp1;
 			} else {
 				if(((embeddedPixelTemp2 > 255) || (embeddedPixelTemp2 < 0))){
+					if(embeddedPixelTemp1 < 0 || embeddedPixelTemp1 > 255)
+						System.out.println("block#: "+block.getBlockCount());
+						System.out.println("rightpixel: "+block.getLeftPixel());
+						System.out.println("basepixel: "+block.getBasePixel());
+						System.out.println("newdiff: "+rangeTable[0][block.getRangeIndex(pixel)]+" + "+secretM+" = "+newDiff);
+						System.out.println("secmessDec: "+secretM);
+						System.out.println("embeddable: "+embeddableBits);
+						System.out.println("temp1: "+embeddedPixelTemp1);
+						System.out.println("temp2: "+embeddedPixelTemp2);
+						System.out.println();
 					return embeddedPixelTemp1;
 				}
 				return embeddedPixelTemp2;
@@ -179,6 +215,16 @@ public class ARC_Algo { 	//TODO better array to image and vice versa ((no loss d
 				return embeddedPixelTemp1;
 			} else {
 				if(((embeddedPixelTemp2 > 255) || (embeddedPixelTemp2 < 0))){
+					if(embeddedPixelTemp1 < 0 || embeddedPixelTemp1 > 255)
+						System.out.println("block#: "+block.getBlockCount());
+						System.out.println("rightpixel: "+block.getRightPixel());
+						System.out.println("basepixel: "+block.getBasePixel());
+						System.out.println("newdiff: "+rangeTable[0][block.getRangeIndex(pixel)]+" + "+secretM+" = "+newDiff);
+						System.out.println("secmessDec: "+secretM);
+						System.out.println("embeddable: "+embeddableBits);
+						System.out.println("temp1: "+embeddedPixelTemp1);
+						System.out.println("temp2: "+embeddedPixelTemp2);
+						System.out.println();
 					return embeddedPixelTemp1;
 				}
 				return embeddedPixelTemp2;

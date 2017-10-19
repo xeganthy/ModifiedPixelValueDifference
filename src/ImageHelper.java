@@ -9,12 +9,10 @@ import java.util.List;
 import javax.imageio.ImageIO;
 
 public class ImageHelper {
-	public static BufferedImage srcImg = null;
 	public static BufferedImage getImage(String dir){
 		BufferedImage img = null;
 		try {
 			img = ImageIO.read(new File(dir));
-			srcImg = img;
 		} catch(IOException e) {
 			System.out.println("File Error!");
 	        e.printStackTrace();
@@ -35,7 +33,7 @@ public class ImageHelper {
 	}
 	public static void createStegoImage(int pixelValueArray[][], String fileName) {
 		BufferedImage image = new BufferedImage(pixelValueArray.length, pixelValueArray[0].length, 
-								srcImg.getType()); 
+								BufferedImage.TYPE_BYTE_GRAY); 
 		
 		for(int i = 0; i < pixelValueArray.length; i++) {
 			for(int j = 0; j < pixelValueArray[0].length; j++) {
@@ -58,7 +56,9 @@ public class ImageHelper {
 //
 //		image = trueColor;
 //		RenderedImage rendImage = image;
-		String path="/Users/MARK ANTONIO/Documents/GitHub/ModifiedPixelValueDifference/stego_Images/"+fileName+".bmp";
+//		String path="/Users/MARK ANTONIO/Documents/GitHub/ModifiedPixelValueDifference/stego_Images/"+fileName+".bmp";
+		
+		String path =System.getProperty("user.dir")+"/stego_Images/"+fileName+".bmp";
 		File imageFile = new File(path);
 		try {
 			ImageIO.write(image, "bmp", imageFile);
@@ -69,10 +69,13 @@ public class ImageHelper {
 	}
 	public static List<Block> pixelDivision(int[][] stegoGrid){
 		List<Block> blocks = new ArrayList<>();
+		int count = 1;
 		for(int i = 0; i < stegoGrid.length; i++){
 			for(int j = 0; j < stegoGrid[0].length - 2; j += 3){
 				Block block = new Block(stegoGrid[j][i], stegoGrid[j+1][i], stegoGrid[j+2][i], j+1, i);
+				block.setBlockCount(count);
 				blocks.add(block);
+				count++;
 			}
 		}
 		return blocks;

@@ -1,4 +1,5 @@
 public class Block {
+	private int blockCount;
 	private int leftPixel;
 	private int basePixel;
 	private int rightPixel;
@@ -14,9 +15,19 @@ public class Block {
 	private int rightRange;
 	private String embedded;
 	private String extracted;
+	
+	public int getBlockCount() {
+		return blockCount;
+	}
+	
+	public void setBlockCount(int blockCount) {
+		this.blockCount = blockCount;
+	}
+	
 	public String getEmbedded() {
 		return embedded;
 	}
+	
 	public void setEmbedded(String embedded) {
 		this.embedded = embedded;
 	}
@@ -138,8 +149,8 @@ public class Block {
 		if(this.leftPixel == b.getLeftPixel() && this.basePixel == b.getBasePixel() && this.rightPixel == b.getRightPixel())
 			return true;
 		else{
-			System.out.println(this.leftPixel+" "+this.basePixel+" "+this.rightPixel);
-			System.out.println(b.getLeftPixel()+" "+b.getBasePixel()+" "+b.getRightPixel());
+			System.out.println("actual pixel  : "+this.leftPixel+" "+this.basePixel+" "+this.rightPixel);
+			System.out.println("expected pixel: "+b.getLeftPixel()+" "+b.getBasePixel()+" "+b.getRightPixel());
 			return false;
 		}
 			
