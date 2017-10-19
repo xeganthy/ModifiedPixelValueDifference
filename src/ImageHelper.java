@@ -44,19 +44,6 @@ public class ImageHelper {
 														(pixelDec << 0)); 
 			}
 		}
-//		BufferedImage trueColor = new BufferedImage(pixelValueArray.length, 
-//				pixelValueArray[0].length, BufferedImage.TYPE_BYTE_GRAY);
-//		Graphics2D g = trueColor.createGraphics();
-//		try {
-//		    g.drawImage(image, 0, 0, null);
-//		}
-//		finally {
-//		    g.dispose();
-//		}
-//
-//		image = trueColor;
-//		RenderedImage rendImage = image;
-//		String path="/Users/MARK ANTONIO/Documents/GitHub/ModifiedPixelValueDifference/stego_Images/"+fileName+".bmp";
 		
 		String path =System.getProperty("user.dir")+"/stego_Images/"+fileName+".bmp";
 		File imageFile = new File(path);
@@ -67,6 +54,31 @@ public class ImageHelper {
 		}
 		
 	}
+	
+	public static void createStegoImage(int pixelValueArray[][], String fileName, String dir) {
+		BufferedImage image = new BufferedImage(pixelValueArray.length, pixelValueArray[0].length, 
+								BufferedImage.TYPE_BYTE_GRAY); 
+		
+		for(int i = 0; i < pixelValueArray.length; i++) {
+			for(int j = 0; j < pixelValueArray[0].length; j++) {
+				int pixelDec = pixelValueArray[i][j];
+				image.getRaster().setSample(i, j, 0, 	(255 	  << 24) |
+														(pixelDec << 16) |		//shift the pixels according to their bit position
+														(pixelDec << 8)  |		//same values on 0-7, 8-15, 16-23
+														(pixelDec << 0)); 
+			}
+		}
+		
+		String path = dir+fileName+".bmp";
+		File imageFile = new File(path);
+		try {
+			ImageIO.write(image, "bmp", imageFile);
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		
+	}
+	
 	public static List<Block> pixelDivision(int[][] stegoGrid){
 		List<Block> blocks = new ArrayList<>();
 		int count = 1;

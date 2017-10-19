@@ -75,6 +75,24 @@ public class ARC_Algo { 	//TODO better array to image and vice versa ((no loss d
 		ImageHelper.createStegoImage(imageGrid, fileName);
 	}
 	
+	public void embedImage(String fileName, String dir) throws IOException {
+		boolean isSmooth = imageClassification(imageGrid); 						//Module 1
+		int[][] rangeTable = (isSmooth) ? rangeTableA : rangeTableB; 
+		//int[][] rangeTable = rangeTableA; 
+		imageGrid[0][0] = embedTableClue(imageGrid[0][0], isSmooth);				//Module 2 	
+		blocks = ImageHelper.pixelDivision(imageGrid);								//Module 3
+		printBlockInfo(blocks, blocks, "ARCBlocksInfoInit");
+		for(int i = 1; i < blocks.size(); i++){									//embedding phase
+			if(secretMessage.getCurrentBit() <= secretMessage.getFinalBit()){
+				embedBlock(blocks.get(i), secretMessage, rangeTable);
+				counter++;
+			}
+		}
+		printBlockInfo(blocks, blocks, "ARCBlocksInfoEmbedded");
+		updateGrid(imageGrid, blocks);
+		ImageHelper.createStegoImage(imageGrid, fileName, dir);
+	}
+	
 	public void extractMessage(BufferedImage stegoImage, String algo, String fileName) throws IOException {
 		int[][] embeddedStegoGrid = new int[stegoImage.getHeight()][stegoImage.getWidth()];
 		embeddedStegoGrid = ImageHelper.getImagePixelValues(stegoImage, embeddedStegoGrid);
@@ -94,6 +112,27 @@ public class ARC_Algo { 	//TODO better array to image and vice versa ((no loss d
 		//testing(blocks, embeddedBlocks);
 		//MessageHelper.writeMessage(embeddedSecretMessage, algo);
 		MessageHelper.binaryToASCII(fileName, algo, embeddedSecretMessage);
+	}
+	
+	public void extractMessage(BufferedImage stegoImage, String algo, String fileName, String dir) throws IOException {
+		int[][] embeddedStegoGrid = new int[stegoImage.getHeight()][stegoImage.getWidth()];
+		embeddedStegoGrid = ImageHelper.getImagePixelValues(stegoImage, embeddedStegoGrid);
+		int[][] rangeTable = (isTableA(embeddedStegoGrid[0][0])) ? rangeTableA : rangeTableB;
+		List<Block> embeddedBlocks = ImageHelper.pixelDivision(embeddedStegoGrid);
+		String embeddedSecretMessage = "";
+		int count = 0;
+		for(int i = 1; i < counter; i++) {
+			
+			embeddedSecretMessage += extractBlock(embeddedBlocks.get(i), rangeTable);
+			if(!embeddedBlocks.get(i).equals(blocks.get(i))){
+				count++;
+			}
+		}
+		System.out.println("arc's pixels inconsistencies count: "+count);
+		printBlockInfo(embeddedBlocks, embeddedBlocks, "ARCBlocksInfoExtracted");
+		//testing(blocks, embeddedBlocks);
+		//MessageHelper.writeMessage(embeddedSecretMessage, algo);
+		MessageHelper.binaryToASCII(fileName, algo, embeddedSecretMessage, dir);
 	}
 	
 	

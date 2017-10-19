@@ -52,6 +52,19 @@ public class KhodFaez_Algo { //TODO better array to image and vice versa ((no lo
 		ImageHelper.createStegoImage(imageGrid, fileName);
 	}
 	
+	public void embedImage(String fileName, String dir) throws IOException {
+		blocks = ImageHelper.pixelDivision(imageGrid);				//Module 3
+		for(int i = 0; i < blocks.size(); i++){			//embedding phase
+			if(secretMessage.getCurrentBit() <= secretMessage.getFinalBit()){
+				embedBlock(blocks.get(i), secretMessage, rangeTable);
+				counter++;
+			}
+		}
+		printBlockInfo(blocks, blocks, "KFBlocksInfoEmbedded");
+		updateGrid(imageGrid, blocks);
+		ImageHelper.createStegoImage(imageGrid, fileName, dir);
+	}
+	
 	public void setEmbeddedBlocks(int[][] embeddedStegoGrid) {
 		embeddedBlocks = ImageHelper.pixelDivision(embeddedStegoGrid);
 	}
@@ -73,6 +86,26 @@ public class KhodFaez_Algo { //TODO better array to image and vice versa ((no lo
 		//MessageHelper.writeMessage(embeddedBitStream, algo);
 //		System.out.println(MessageHelper.binaryToASCII("KFExtractedMessageBinary.txt", algo));
 		MessageHelper.binaryToASCII(fileName, algo, embeddedBitStream);
+	}
+	
+	public void extractMessage(BufferedImage stegoImage, String algo, String fileName, String dir) throws IOException {
+		int[][] embeddedStegoGrid = new int[stegoImage.getHeight()][stegoImage.getWidth()];
+		embeddedStegoGrid = ImageHelper.getImagePixelValues(stegoImage, embeddedStegoGrid);
+		embeddedBlocks = ImageHelper.pixelDivision(embeddedStegoGrid);
+		String embeddedBitStream = "";
+		int count = 0;
+		for(int i = 0; i < counter; i++) {
+			embeddedBitStream += extractBlock(embeddedBlocks.get(i), rangeTable);
+			if(!embeddedBlocks.get(i).equals(blocks.get(i))){
+				count++;
+			}
+		}
+		System.out.println("kf's pixels inconsistencies count: "+count);
+//		System.out.println(count);
+		//printBlockInfo(embeddedBlocks, embeddedBlocks, "KFBlocksInfoExtracted");
+		//MessageHelper.writeMessage(embeddedBitStream, algo);
+//		System.out.println(MessageHelper.binaryToASCII("KFExtractedMessageBinary.txt", algo));
+		MessageHelper.binaryToASCII(fileName, algo, embeddedBitStream, dir);
 	}
 	
 	KhodFaez_Algo(int[][] imageGrid, MessageHelper secretMessage) {	//constructor
