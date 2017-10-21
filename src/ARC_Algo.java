@@ -58,19 +58,16 @@ public class ARC_Algo { 	//TODO better array to image and vice versa ((no loss d
 		boolean isSmooth = imageClassification(imageGrid); 	//Module 1
 		int[][] rangeTable = (isSmooth) ? rangeTableA : rangeTableB; 
 		//int[][] rangeTable = rangeTableA; 
-		imageGrid[0][0] = embedTableClue(imageGrid[0][0], isSmooth);				//Module 2 	NOTE; IF YOU WANT TO USE TABLE A 
-																//			JUST PLACE THE 2ND PARAM TRUE, 
-																//ELSE IF TABLE B FALSE
-		
+		imageGrid[0][0] = embedTableClue(imageGrid[0][0], isSmooth);
 		blocks = ImageHelper.pixelDivision(imageGrid);			//Module 3
-		printBlockInfo(blocks, blocks, "ARCBlocksInfoInit");
+//		printBlockInfo(blocks, blocks, "ARCBlocksInfoInit");
 		for(int i = 1; i < blocks.size(); i++){				//embedding phase
 			if(secretMessage.getCurrentBit() <= secretMessage.getFinalBit()){
 				embedBlock(blocks.get(i), secretMessage, rangeTable);
 				counter++;
 			}
 		}
-		printBlockInfo(blocks, blocks, "ARCBlocksInfoEmbedded");
+//		printBlockInfo(blocks, blocks, "ARCBlocksInfoEmbedded");
 		updateGrid(imageGrid, blocks);
 		ImageHelper.createStegoImage(imageGrid, fileName);
 	}
@@ -80,17 +77,18 @@ public class ARC_Algo { 	//TODO better array to image and vice versa ((no loss d
 		embeddedStegoGrid = ImageHelper.getImagePixelValues(stegoImage, embeddedStegoGrid);
 		int[][] rangeTable = (isTableA(embeddedStegoGrid[0][0])) ? rangeTableA : rangeTableB;
 		List<Block> embeddedBlocks = ImageHelper.pixelDivision(embeddedStegoGrid);
-		String embeddedSecretMessage = "";
+		StringBuilder sb = new StringBuilder();
 		int count = 0;
 		for(int i = 1; i < counter; i++) {
-			
-			embeddedSecretMessage += extractBlock(embeddedBlocks.get(i), rangeTable);
+			sb.append(extractBlock(embeddedBlocks.get(i), rangeTable));
+//			embeddedSecretMessage += extractBlock(embeddedBlocks.get(i), rangeTable);
 			if(!embeddedBlocks.get(i).equals(blocks.get(i))){
 				count++;
 			}
 		}
+		String embeddedSecretMessage = sb.toString();
 		System.out.println("arc's pixels inconsistencies count: "+count);
-		printBlockInfo(embeddedBlocks, embeddedBlocks, "ARCBlocksInfoExtracted");
+//		printBlockInfo(embeddedBlocks, embeddedBlocks, "ARCBlocksInfoExtracted");
 		//testing(blocks, embeddedBlocks);
 		//MessageHelper.writeMessage(embeddedSecretMessage, algo);
 		MessageHelper.binaryToASCII(fileName, algo, embeddedSecretMessage);
