@@ -36,8 +36,8 @@ public class MessageHelper {
 	            bitset.set(i);
 	        }
 		}
-		this.finalBit = bitset.length()+1;
-		//System.out.println(finalBit);
+		this.finalBit = bitset.size()+1;
+		System.out.println(finalBit);
 		String filename = (algo.equals("KF")) ? "KFtoEmbedBinary.txt" : "ARCtoEmbedBinary.txt";
 		try (BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(
 				new FileOutputStream(filename), "utf-8"))) {
@@ -88,12 +88,10 @@ public class MessageHelper {
 	public static String[] splitStringEvery(String s, int interval) {
 	    int arrayLength = (int) Math.ceil(((s.length() / (double)interval)));
 	    String[] result = new String[arrayLength];
-	    String res = "";
 	    int j = 0;
 	    int lastIndex = result.length - 1;
 	    for (int i = 0; i < lastIndex; i++) {
 	        result[i] = s.substring(j, j + interval);
-	        res += result[i];
 	        j += interval;
 	    } //Add the last bit
 	    //if(s.substring(j).length() == interval)
@@ -104,12 +102,13 @@ public class MessageHelper {
 	
 	public static String binaryToASCII(String fileName, String algo, String bitstream) throws IOException {
 		String[] binValues = splitStringEvery(bitstream, 8);
-		String output = "";
+		StringBuilder sb = new StringBuilder();
 		for(int i = 0; i < binValues.length - 1; i++) {
 			int charCode = Integer.parseInt(binValues[i], 2);
 			if(charCode != 0)
-				output += (char)charCode;
+				sb.append((char)charCode);
 		}
+		String output = sb.toString();
 //		String filename = (algo.equals("KF")) ? "KFExtractedMessageASCII.txt" : "ARCExtractedMessageASCII.txt";
 //		String path="/Users/MARK ANTONIO/Documents/GitHub/ModifiedPixelValueDifference/extracted_Messages/"+fileName+".txt";
 		String path =System.getProperty("user.dir")+"/extracted_Messages/"+fileName+".txt";
