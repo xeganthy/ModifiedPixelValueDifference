@@ -9,12 +9,12 @@ import java.util.Scanner;
 public class ARC_Algo { 	//TODO better array to image and vice versa ((no loss dapat))
 							//TODO tests for 512 and 256 images
 							//TODO when to stop extracting
-	int[][] rangeTableA = 	{{0,8,16,24,32,48,64,128}, 	//lj; TABLE FOR SMOOTH
-		     				{7,15,23,31,47,63,127,255}, 	//uj
-		     				{3,3,3,3,4,4,5,6}};		//tj
-	int[][] rangeTableB = 	{{0,16,32,64,128,192}, 	//lj; TABLE FOR EDGY
-		     				{15,31,63,127,191,255}, 	//uj
-		     				{4,4,5,5,5,5}};		//tj
+	int[][] rangeTableA = 	{{0,8,16,24,32,48,64}, 	//lj; TABLE FOR SMOOTH
+		     				{7,15,23,31,47,63,255}, 	//uj
+		     				{3,3,3,3,4,4,6}};		//tj
+	int[][] rangeTableB = 	{{0,8,16,32,64,128}, 	//lj; TABLE FOR EDGY
+		     				{7,15,31,63,127,255}, 	//uj
+		     				{3,3,4,5,5,4}};		//tj
 	
 	private int[][] imageGrid;							//each element has the equivalent pixel value ((decimal))
 	private MessageHelper secretMessage;				//converted text file ((binary))
@@ -197,7 +197,8 @@ public class ARC_Algo { 	//TODO better array to image and vice versa ((no loss d
 				if(((embeddedPixelTemp2 > 255) || (embeddedPixelTemp2 < 0))){
 					if(embeddedPixelTemp1 < 0 || embeddedPixelTemp1 > 255)
 						System.out.println("block#: "+block.getBlockCount());
-						System.out.println("rightpixel: "+block.getLeftPixel());
+						System.out.println("difference: "+Math.abs(block.getBasePixel() - block.getLeftPixel()));
+						System.out.println("leftpixel: "+block.getLeftPixel());
 						System.out.println("basepixel: "+block.getBasePixel());
 						System.out.println("newdiff: "+rangeTable[0][block.getRangeIndex(pixel)]+" + "+secretM+" = "+newDiff);
 						System.out.println("secmessDec: "+secretM);
@@ -217,6 +218,7 @@ public class ARC_Algo { 	//TODO better array to image and vice versa ((no loss d
 				if(((embeddedPixelTemp2 > 255) || (embeddedPixelTemp2 < 0))){
 					if(embeddedPixelTemp1 < 0 || embeddedPixelTemp1 > 255)
 						System.out.println("block#: "+block.getBlockCount());
+						System.out.println("difference: "+Math.abs(block.getBasePixel() - block.getRightPixel()));
 						System.out.println("rightpixel: "+block.getRightPixel());
 						System.out.println("basepixel: "+block.getBasePixel());
 						System.out.println("newdiff: "+rangeTable[0][block.getRangeIndex(pixel)]+" + "+secretM+" = "+newDiff);
