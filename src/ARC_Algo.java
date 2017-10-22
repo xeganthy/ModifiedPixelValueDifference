@@ -11,7 +11,7 @@ public class ARC_Algo { 	//TODO better array to image and vice versa ((no loss d
 							//TODO when to stop extracting
 	int[][] rangeTableA = 	{{0,8,16,24,32,48,64}, 	//lj; TABLE FOR SMOOTH
 		     				{7,15,23,31,47,63,255}, 	//uj
-		     				{3,3,3,3,4,4,6}};		//tj
+		     				{3,3,3,3,4,4,5,6}};		//tj
 	int[][] rangeTableB = 	{{0,8,16,32,64,96}, 	//lj; TABLE FOR EDGY
 		     				{7,15,31,63,95,255}, 	//uj
 		     				{3,3,4,5,5,4}};		//tj
@@ -96,21 +96,26 @@ public class ARC_Algo { 	//TODO better array to image and vice versa ((no loss d
 	
 	
 	public boolean imageClassification(int[][] stegoGrid) { //TODO
-		int threshold = 150;		//threshold for testing
+		int threshold = 96;		//threshold for testing
 		int smoothCtr = 0;
 		int edgeCtr = 0;
-		
+		double size = 0;
 		for(int i = 0; i < stegoGrid.length; i++) {
 			for(int j = 0; j < stegoGrid[0].length-1; j++) {
-				if(Math.abs(stegoGrid[i][j]-stegoGrid[i][j+1])>threshold){
+				if(Math.abs(stegoGrid[i][j]-stegoGrid[i][j+1])<threshold){
 					smoothCtr++;
 				}else{
 					edgeCtr++;
 				}
+				size++;
 			}
 		}
 		System.out.println("smooth "+smoothCtr+" edge "+edgeCtr);
-		if(smoothCtr>edgeCtr){
+		System.out.println(size);
+		double deCtr = size * .004;				//number of blocks needed to be considered edgy
+		System.out.println("dectr: "+deCtr);
+
+		if(smoothCtr<deCtr){
 			System.out.println("is smooth");
 			return true;
 		}else{
