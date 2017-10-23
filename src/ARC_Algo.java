@@ -115,7 +115,7 @@ public class ARC_Algo { 	//TODO better array to image and vice versa ((no loss d
 		double deCtr = size * .004;				//number of blocks needed to be considered edgy
 		System.out.println("dectr: "+deCtr);
 
-		if(smoothCtr<deCtr){
+		if(edgeCtr<deCtr){
 			System.out.println("is smooth");
 			return true;
 		}else{
