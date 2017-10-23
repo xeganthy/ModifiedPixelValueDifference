@@ -3,40 +3,31 @@ import java.util.Scanner;
 
 public class MetricsCalculator {
 	
-	public static void main(String[] args) {
-		Scanner sc = new Scanner(System.in);
-		System.out.println("Enter original image file name: ");
-		String originalFile = sc.nextLine();
-		System.out.println("Enter Arc Image file name: ");
-		String arcFile = sc.nextLine();
-		System.out.println("Enter Khoez Image file name: ");
-		String khoFile = sc.nextLine();
+	public static double getPSNR(String coverDir, String stegoDir){
+		BufferedImage coverImage = ImageHelper.getImage(coverDir);
+		BufferedImage stegoImage = ImageHelper.getImage(stegoDir);
 		
-		BufferedImage originalImage = ImageHelper.getImage("/Users/MARK ANTONIO/Documents/GitHub/ModifiedPixelValueDifference/original_Images/"+originalFile+".bmp");				//bmp image
-		int[][] origImage = new int[originalImage.getHeight()][originalImage.getWidth()];	
-		origImage = ImageHelper.getImagePixelValues(originalImage, origImage);
-		BufferedImage arcStegoImage = ImageHelper.getImage("/Users/MARK ANTONIO/Documents/GitHub/ModifiedPixelValueDifference/stego_Images/"+arcFile+".bmp");
-		int[][] arcstegoImage = new int[arcStegoImage.getHeight()][arcStegoImage.getWidth()];	
-		arcstegoImage = ImageHelper.getImagePixelValues(arcStegoImage, arcstegoImage); 
-		BufferedImage khoezStegoImage = ImageHelper.getImage("/Users/MARK ANTONIO/Documents/GitHub/ModifiedPixelValueDifference/stego_Images/"+khoFile+".bmp");
-		int[][] khoezstegoImage = new int[arcStegoImage.getHeight()][arcStegoImage.getWidth()];	
-		khoezstegoImage = ImageHelper.getImagePixelValues(khoezStegoImage, khoezstegoImage); 
+		int[][] coverGrid = new int[coverImage.getHeight()][coverImage.getWidth()];
+		int[][] stegoGrid = new int[stegoImage.getHeight()][coverImage.getWidth()];
 		
-		System.out.println("ARC image PSNR: "+calculatePSNR(origImage, arcstegoImage));
-		System.out.println("Khoez image PSNR: "+calculatePSNR(origImage, khoezstegoImage));
+		coverGrid = ImageHelper.getImagePixelValues(coverImage, coverGrid);
+		stegoGrid = ImageHelper.getImagePixelValues(stegoImage, stegoGrid);
 		
-	}
-	
-	public static double calculatePSNR(int[][] origImage, int[][] stegoImage){
-		int mse=0;
-		for(int i = 0; i < origImage.length; i++) {
-			for(int j = 0; j < origImage[0].length; j++) {
-				mse += Math.pow(origImage[i][j]-stegoImage[i][j], 2);
+		int mse = 0;
+		int sum = 0;
+		for(int i = 0; i < coverGrid.length; i++) {
+			for(int j = 0; j < coverGrid[0].length; j++) {
+				sum += Math.pow(coverGrid[i][j]-stegoGrid[i][j], 2);
 //				System.out.println(origImage[i][j] + "  " + stegoImage[i][j]);
 			}
 		}
-		int mean = mse/512;
-		double PSNR = 10*Math.log((Math.pow(512, 2)/mean));
+		mse = sum/(coverGrid.length * coverGrid[0].length);
+		double PSNR = 10 * (Math.log((Math.pow(255, 2)/mse)));
+		
 		return PSNR;
+	}
+	
+	public static double getEmbeddingCapacity(double embeddedSecretDataLength, double imageSize){
+		return (embeddedSecretDataLength/imageSize)*1000;
 	}
 }

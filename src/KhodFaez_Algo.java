@@ -20,8 +20,15 @@ public class KhodFaez_Algo { //TODO better array to image and vice versa ((no lo
 	private List<Block> blocks;
 	private List<Block> embeddedBlocks;
 	int counter = 0;							//temp stopper for extraction
+	private String embeddedSecretData;
 	
-
+	public void setEmbeddedSecretData(String embeddedSecretData){
+		this.embeddedSecretData = embeddedSecretData;
+	}
+	
+	public String getEmbeddedSecretData() {
+		return embeddedSecretData;
+	}
 	
 	public void embedImage() throws IOException {
 		blocks = ImageHelper.pixelDivision(imageGrid);				//Module 3
@@ -31,7 +38,7 @@ public class KhodFaez_Algo { //TODO better array to image and vice versa ((no lo
 				counter++;
 			}
 		}
-		printBlockInfo(blocks, blocks, "KFBlocksInfoEmbedded");
+//		printBlockInfo(blocks, blocks, "KFBlocksInfoEmbedded");
 		updateGrid(imageGrid, blocks);
 		System.out.println("Enter khoez file name:");
 		Scanner sc = new Scanner(System.in);
@@ -47,7 +54,7 @@ public class KhodFaez_Algo { //TODO better array to image and vice versa ((no lo
 				counter++;
 			}
 		}
-		printBlockInfo(blocks, blocks, "KFBlocksInfoEmbedded");
+//		printBlockInfo(blocks, blocks, "KFBlocksInfoEmbedded");
 		updateGrid(imageGrid, blocks);
 		ImageHelper.createStegoImage(imageGrid, fileName);
 	}
@@ -60,7 +67,7 @@ public class KhodFaez_Algo { //TODO better array to image and vice versa ((no lo
 				counter++;
 			}
 		}
-		printBlockInfo(blocks, blocks, "KFBlocksInfoEmbedded");
+//		printBlockInfo(blocks, blocks, "KFBlocksInfoEmbedded");
 		updateGrid(imageGrid, blocks);
 		ImageHelper.createStegoImage(imageGrid, fileName, dir);
 	}
@@ -72,14 +79,18 @@ public class KhodFaez_Algo { //TODO better array to image and vice versa ((no lo
 		int[][] embeddedStegoGrid = new int[stegoImage.getHeight()][stegoImage.getWidth()];
 		embeddedStegoGrid = ImageHelper.getImagePixelValues(stegoImage, embeddedStegoGrid);
 		embeddedBlocks = ImageHelper.pixelDivision(embeddedStegoGrid);
-		String embeddedBitStream = "";
+		StringBuilder sb = new StringBuilder();
+//		String embeddedBitStream = "";
 		int count = 0;
 		for(int i = 0; i < counter; i++) {
-			embeddedBitStream += extractBlock(embeddedBlocks.get(i), rangeTable);
+			sb.append(extractBlock(embeddedBlocks.get(i), rangeTable));
+//			embeddedBitStream += extractBlock(embeddedBlocks.get(i), rangeTable);
 			if(!embeddedBlocks.get(i).equals(blocks.get(i))){
 				count++;
 			}
 		}
+		String embeddedBitStream = sb.toString();
+		embeddedSecretData = embeddedBitStream;
 		System.out.println("kf's pixels inconsistencies count: "+count);
 //		System.out.println(count);
 		//printBlockInfo(embeddedBlocks, embeddedBlocks, "KFBlocksInfoExtracted");
@@ -92,14 +103,16 @@ public class KhodFaez_Algo { //TODO better array to image and vice versa ((no lo
 		int[][] embeddedStegoGrid = new int[stegoImage.getHeight()][stegoImage.getWidth()];
 		embeddedStegoGrid = ImageHelper.getImagePixelValues(stegoImage, embeddedStegoGrid);
 		embeddedBlocks = ImageHelper.pixelDivision(embeddedStegoGrid);
-		String embeddedBitStream = "";
+		StringBuilder sb = new StringBuilder();
 		int count = 0;
 		for(int i = 0; i < counter; i++) {
-			embeddedBitStream += extractBlock(embeddedBlocks.get(i), rangeTable);
+			sb.append(extractBlock(embeddedBlocks.get(i), rangeTable));
 			if(!embeddedBlocks.get(i).equals(blocks.get(i))){
 				count++;
 			}
 		}
+		String embeddedBitStream = sb.toString();
+		embeddedSecretData = embeddedBitStream;
 		System.out.println("kf's pixels inconsistencies count: "+count);
 //		System.out.println(count);
 		//printBlockInfo(embeddedBlocks, embeddedBlocks, "KFBlocksInfoExtracted");

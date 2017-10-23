@@ -88,12 +88,10 @@ public class MessageHelper {
 	public static String[] splitStringEvery(String s, int interval) {
 	    int arrayLength = (int) Math.ceil(((s.length() / (double)interval)));
 	    String[] result = new String[arrayLength];
-	    String res = "";
 	    int j = 0;
 	    int lastIndex = result.length - 1;
 	    for (int i = 0; i < lastIndex; i++) {
 	        result[i] = s.substring(j, j + interval);
-	        res += result[i];
 	        j += interval;
 	    } //Add the last bit
 	    //if(s.substring(j).length() == interval)
@@ -123,21 +121,23 @@ public class MessageHelper {
 	
 	public static String binaryToASCII(String fileName, String algo, String bitstream, String dir) throws IOException {
 		String[] binValues = splitStringEvery(bitstream, 8);
-		String output = "";
+		StringBuilder sb = new StringBuilder();
+//		String output = "";
 		for(int i = 0; i < binValues.length - 1; i++) {
 			int charCode = Integer.parseInt(binValues[i], 2);
 			if(charCode != 0)
-				output += (char)charCode;
+				sb.append((char)charCode);
+//				output += (char)charCode;
 		}
 //		String filename = (algo.equals("KF")) ? "KFExtractedMessageASCII.txt" : "ARCExtractedMessageASCII.txt";
 //		String path="/Users/MARK ANTONIO/Documents/GitHub/ModifiedPixelValueDifference/extracted_Messages/"+fileName+".txt";
 		String path = dir+fileName+".txt";
 		BufferedWriter writer = new BufferedWriter(new OutputStreamWriter
 				(new FileOutputStream(path), "UTF-8"));
-		writer.write(output);
+		writer.write(sb.toString());
 		writer.flush();
 		writer.close();
-		return output;
+		return sb.toString();
 	}
 	
 	public String getSecretBits(int numberToRead) {

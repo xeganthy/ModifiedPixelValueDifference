@@ -9,17 +9,18 @@ import java.util.Scanner;
 public class ARC_Algo { 	//TODO better array to image and vice versa ((no loss dapat))
 							//TODO tests for 512 and 256 images
 							//TODO when to stop extracting
-	int[][] rangeTableA = 	{{0,8,16,24,32,48,64,128}, 	//lj; TABLE FOR SMOOTH
-		     				{7,15,23,31,47,63,127,255}, 	//uj
-		     				{3,3,3,3,4,4,5,6}};		//tj
-	int[][] rangeTableB = 	{{0,16,32,64,128,192}, 	//lj; TABLE FOR EDGY
-		     				{15,31,63,127,191,255}, 	//uj
-		     				{4,4,5,5,5,5}};		//tj
-	
+	int[][] rangeTableA = 	{{0,8,16,24,32,48,64}, 	//lj; TABLE FOR SMOOTH
+							{7,15,23,31,47,63,255}, //uj
+							{3,3,3,3,4,4,5,6}};		//tj
+	int[][] rangeTableB = 	{{0,8,16,32,64,96}, 	//lj; TABLE FOR EDGY
+							{7,15,31,63,95,255}, 	//uj
+							{3,3,4,5,5,4}};			//tj
+				
 	private int[][] imageGrid;							//each element has the equivalent pixel value ((decimal))
 	private MessageHelper secretMessage;				//converted text file ((binary))
 	private List<Block> blocks;
 	int counter = 0;									//temp stopper for extraction
+	private String embeddedSecretData;
 	
 	ARC_Algo(int[][] imageGrid, MessageHelper secretMessage) {	//constructor
 		this.imageGrid = imageGrid;
@@ -46,7 +47,7 @@ public class ARC_Algo { 	//TODO better array to image and vice versa ((no loss d
 				counter++;
 			}
 		}
-		printBlockInfo(blocks, blocks, "ARCBlocksInfoEmbedded");
+//		printBlockInfo(blocks, blocks, "ARCBlocksInfoEmbedded");
 		updateGrid(imageGrid, blocks);
 		System.out.println("Enter arcStegoImage file name: ");
 		Scanner sc = new Scanner(System.in);
@@ -63,14 +64,14 @@ public class ARC_Algo { 	//TODO better array to image and vice versa ((no loss d
 																//ELSE IF TABLE B FALSE
 		
 		blocks = ImageHelper.pixelDivision(imageGrid);			//Module 3
-		printBlockInfo(blocks, blocks, "ARCBlocksInfoInit");
+//		printBlockInfo(blocks, blocks, "ARCBlocksInfoInit");
 		for(int i = 1; i < blocks.size(); i++){				//embedding phase
 			if(secretMessage.getCurrentBit() <= secretMessage.getFinalBit()){
 				embedBlock(blocks.get(i), secretMessage, rangeTable);
 				counter++;
 			}
 		}
-		printBlockInfo(blocks, blocks, "ARCBlocksInfoEmbedded");
+//		printBlockInfo(blocks, blocks, "ARCBlocksInfoEmbedded");
 		updateGrid(imageGrid, blocks);
 		ImageHelper.createStegoImage(imageGrid, fileName);
 	}
@@ -81,14 +82,14 @@ public class ARC_Algo { 	//TODO better array to image and vice versa ((no loss d
 		//int[][] rangeTable = rangeTableA; 
 		imageGrid[0][0] = embedTableClue(imageGrid[0][0], isSmooth);				//Module 2 	
 		blocks = ImageHelper.pixelDivision(imageGrid);								//Module 3
-		printBlockInfo(blocks, blocks, "ARCBlocksInfoInit");
+//		printBlockInfo(blocks, blocks, "ARCBlocksInfoInit");
 		for(int i = 1; i < blocks.size(); i++){									//embedding phase
 			if(secretMessage.getCurrentBit() <= secretMessage.getFinalBit()){
 				embedBlock(blocks.get(i), secretMessage, rangeTable);
 				counter++;
 			}
 		}
-		printBlockInfo(blocks, blocks, "ARCBlocksInfoEmbedded");
+//		printBlockInfo(blocks, blocks, "ARCBlocksInfoEmbedded");
 		updateGrid(imageGrid, blocks);
 		ImageHelper.createStegoImage(imageGrid, fileName, dir);
 	}
@@ -98,17 +99,19 @@ public class ARC_Algo { 	//TODO better array to image and vice versa ((no loss d
 		embeddedStegoGrid = ImageHelper.getImagePixelValues(stegoImage, embeddedStegoGrid);
 		int[][] rangeTable = (isTableA(embeddedStegoGrid[0][0])) ? rangeTableA : rangeTableB;
 		List<Block> embeddedBlocks = ImageHelper.pixelDivision(embeddedStegoGrid);
-		String embeddedSecretMessage = "";
+		StringBuilder sb = new StringBuilder();
 		int count = 0;
 		for(int i = 1; i < counter; i++) {
-			
-			embeddedSecretMessage += extractBlock(embeddedBlocks.get(i), rangeTable);
+			sb.append(extractBlock(embeddedBlocks.get(i), rangeTable));
+//			embeddedSecretMessage += extractBlock(embeddedBlocks.get(i), rangeTable);
 			if(!embeddedBlocks.get(i).equals(blocks.get(i))){
 				count++;
 			}
 		}
+		String embeddedSecretMessage = sb.toString();
+		embeddedSecretData = embeddedSecretMessage;
 		System.out.println("arc's pixels inconsistencies count: "+count);
-		printBlockInfo(embeddedBlocks, embeddedBlocks, "ARCBlocksInfoExtracted");
+//		printBlockInfo(embeddedBlocks, embeddedBlocks, "ARCBlocksInfoExtracted");
 		//testing(blocks, embeddedBlocks);
 		//MessageHelper.writeMessage(embeddedSecretMessage, algo);
 		MessageHelper.binaryToASCII(fileName, algo, embeddedSecretMessage);
@@ -119,17 +122,19 @@ public class ARC_Algo { 	//TODO better array to image and vice versa ((no loss d
 		embeddedStegoGrid = ImageHelper.getImagePixelValues(stegoImage, embeddedStegoGrid);
 		int[][] rangeTable = (isTableA(embeddedStegoGrid[0][0])) ? rangeTableA : rangeTableB;
 		List<Block> embeddedBlocks = ImageHelper.pixelDivision(embeddedStegoGrid);
-		String embeddedSecretMessage = "";
+		StringBuilder sb = new StringBuilder();
 		int count = 0;
 		for(int i = 1; i < counter; i++) {
-			
-			embeddedSecretMessage += extractBlock(embeddedBlocks.get(i), rangeTable);
+			sb.append(extractBlock(embeddedBlocks.get(i), rangeTable));
+//			embeddedSecretMessage += extractBlock(embeddedBlocks.get(i), rangeTable);
 			if(!embeddedBlocks.get(i).equals(blocks.get(i))){
 				count++;
 			}
 		}
+		String embeddedSecretMessage = sb.toString();
+		embeddedSecretData = embeddedSecretMessage;
 		System.out.println("arc's pixels inconsistencies count: "+count);
-		printBlockInfo(embeddedBlocks, embeddedBlocks, "ARCBlocksInfoExtracted");
+//		printBlockInfo(embeddedBlocks, embeddedBlocks, "ARCBlocksInfoExtracted");
 		//testing(blocks, embeddedBlocks);
 		//MessageHelper.writeMessage(embeddedSecretMessage, algo);
 		MessageHelper.binaryToASCII(fileName, algo, embeddedSecretMessage, dir);
@@ -137,10 +142,10 @@ public class ARC_Algo { 	//TODO better array to image and vice versa ((no loss d
 	
 	
 	public boolean imageClassification(int[][] stegoGrid) { //TODO
-		int threshold = 150;		//threshold for testing
+		int threshold = 96;		//threshold for testing
 		int smoothCtr = 0;
 		int edgeCtr = 0;
-		
+		double size = 0;
 		for(int i = 0; i < stegoGrid.length; i++) {
 			for(int j = 0; j < stegoGrid[0].length-1; j++) {
 				if(Math.abs(stegoGrid[i][j]-stegoGrid[i][j+1])<threshold){
@@ -148,10 +153,15 @@ public class ARC_Algo { 	//TODO better array to image and vice versa ((no loss d
 				}else{
 					edgeCtr++;
 				}
+				size++;
 			}
 		}
 		System.out.println("smooth "+smoothCtr+" edge "+edgeCtr);
-		if(smoothCtr>edgeCtr){
+		System.out.println(size);
+		double deCtr = size * .004;				//number of blocks needed to be considered edgy
+		System.out.println("dectr: "+deCtr);
+
+		if(smoothCtr<deCtr){
 			System.out.println("is smooth");
 			return true;
 		}else{
@@ -397,6 +407,14 @@ public class ARC_Algo { 	//TODO better array to image and vice versa ((no loss d
 
 	public void setSecretMessage(MessageHelper secretMessage) {
 		this.secretMessage = secretMessage;
+	}
+	
+	public void setEmbeddedSecretData(String embeddedSecretData){
+		this.embeddedSecretData = embeddedSecretData;
+	}
+	
+	public String getEmbeddedSecretData() {
+		return embeddedSecretData;
 	}
 	
 //	public static void main(String[] args) throws IOException {

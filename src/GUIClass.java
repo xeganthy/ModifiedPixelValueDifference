@@ -208,22 +208,22 @@ public class GUIClass extends javax.swing.JFrame {
 					MessageHelper secretMessage = new MessageHelper("ARC");						//secretMessage ARC
 					MessageHelper secretMessage2 = new MessageHelper("KF");						//secretMessage KF ((it's the same))
 					
-					int[][] imageGrid = new int[image.getHeight()][image.getWidth()];				//initialize array for 
+					int[][] imageGrid = new int[image.getHeight()][image.getWidth()];			//initialize array for 
 					int[][] imageGrid2 = new int[image.getHeight()][image.getWidth()];			//image grid
 					
 					imageGrid = ImageHelper.getImagePixelValues(image, imageGrid); 				//module 2
 					imageGrid2 = ImageHelper.getImagePixelValues(image, imageGrid2);
 					
-					secretMessage.messageToBinary(msgDir);											//module 3
-					secretMessage2.messageToBinary(msgDir);											//module 3
+					secretMessage.messageToBinary(msgDir);										//module 3
+					secretMessage2.messageToBinary(msgDir);										//module 3
 					
-					System.out.println("embedding arc");											//EMBEDDING START
+					System.out.println("embedding arc");										//EMBEDDING START
 					ARC_Algo arc = new ARC_Algo(imageGrid, secretMessage);						//Arc Algo
 					arc.embedImage(imgFileName+"_arc", outputImgDir);
 					
 					System.out.println("embedding khoez");
 					KhodFaez_Algo khodFaez = new KhodFaez_Algo(imageGrid2, secretMessage2);
-					khodFaez.embedImage(imgFileName+"_khoez", outputImgDir);											//EMBEDDING END
+					khodFaez.embedImage(imgFileName+"_khoez", outputImgDir);					//EMBEDDING END
 					
 					String stgImgDirARC = outputImgDir+imgFileName+"_arc.bmp";
 					String stgImgDirKF = outputImgDir+imgFileName+"_khoez.bmp";
@@ -232,11 +232,29 @@ public class GUIClass extends javax.swing.JFrame {
 					BufferedImage arcStegoImage = ImageHelper.getImage(stgImgDirARC);
 					BufferedImage kFStegoImage = ImageHelper.getImage(stgImgDirKF);
 					
-					System.out.println("extracting arc");
-					arc.extractMessage(arcStegoImage, "ARC", imgFileName+"_arc", outputTextDir);
+					System.out.println("extracting arc");										//extraction start
+					arc.extractMessage(arcStegoImage, "ARC", 
+							imgFileName+"_arc", outputTextDir);
 					System.out.println();
 					System.out.println("extracting khoez");
-					khodFaez.extractMessage(kFStegoImage, "KF",imgFileName+"_khoez", outputTextDir);
+					khodFaez.extractMessage(kFStegoImage, "KF",imgFileName+						//extraction end
+							"_khoez", outputTextDir);
+					Double arcPSNR = MetricsCalculator.getPSNR(imgDir, 
+							outputImgDir+imgFileName+"_arc.bmp");
+					Double arcEmbeddingCap = MetricsCalculator.
+							getEmbeddingCapacity(arc.getEmbeddedSecretData().length(),
+									image.getHeight());
+					Double khoezPSNR = MetricsCalculator.getPSNR(imgDir, 
+							outputImgDir+imgFileName+"_khoez.bmp");
+					Double khoezEmbeddingCap = MetricsCalculator.
+							getEmbeddingCapacity(khodFaez.getEmbeddedSecretData().length(),
+									image.getHeight());
+					System.out.println(khodFaez.getEmbeddedSecretData().length()+" "+image.getHeight()+" "+arc.getEmbeddedSecretData().length());
+					System.out.println("arcPSNR:   "+arcPSNR);
+					System.out.println("khoezPSNR: "+khoezPSNR);
+					System.out.println("arcEmbeddingCap:   "+arcEmbeddingCap);
+					System.out.println("khoezEmbeddingCap: "+khoezEmbeddingCap);
+					System.out.println();
 					System.out.println("END");
 				} catch (IOException ex) {
 					ex.printStackTrace();
