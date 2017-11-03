@@ -1,3 +1,4 @@
+import java.awt.Toolkit;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.util.Scanner;
@@ -60,6 +61,7 @@ public class MainClass {
 		System.out.println("extracting khoez");
 		khodFaez.extractMessage(kFStegoImage, "KF",fileName+"_khoez");
 		System.out.println("END");
+		Toolkit.getDefaultToolkit().beep();
 	}
 
 }

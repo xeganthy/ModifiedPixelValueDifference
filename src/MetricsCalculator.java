@@ -35,8 +35,9 @@ public class MetricsCalculator {
 //				System.out.println(origImage[i][j] + "  " + stegoImage[i][j]);
 			}
 		}
-		int mean = mse/512;
-		double PSNR = 10*Math.log((Math.pow(512, 2)/mean));
+		System.out.println(origImage.length);
+		int mean = mse/(origImage.length*origImage[0].length);
+		double PSNR = 10*Math.log10((Math.pow(255, 2)/mean));
 		return PSNR;
 	}
 }

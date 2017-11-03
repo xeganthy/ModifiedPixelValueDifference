@@ -100,6 +100,7 @@ public class ARC_Algo { 	//TODO better array to image and vice versa ((no loss d
 		int smoothCtr = 0;
 		int edgeCtr = 0;
 		double size = 0;
+		double deCtr = 0;
 		for(int i = 0; i < stegoGrid.length; i++) {
 			for(int j = 0; j < stegoGrid[0].length-1; j++) {
 				if(Math.abs(stegoGrid[i][j]-stegoGrid[i][j+1])<threshold){
@@ -112,7 +113,13 @@ public class ARC_Algo { 	//TODO better array to image and vice versa ((no loss d
 		}
 		System.out.println("smooth "+smoothCtr+" edge "+edgeCtr);
 		System.out.println(size);
-		double deCtr = size * .004;				//number of blocks needed to be considered edgy
+		
+		//adjust number of edged blocks needed to be classified as edgy according to image size
+		if(stegoGrid.length==256){		
+			deCtr = 220;
+		}else{
+			deCtr = 1046;
+		}
 		System.out.println("dectr: "+deCtr);
 
 		if(edgeCtr<deCtr){
