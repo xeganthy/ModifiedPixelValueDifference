@@ -22,12 +22,12 @@ public class MetricsCalculator {
 			}
 		}
 		mse = sum/(coverGrid.length * coverGrid[0].length);
-		double PSNR = 10 * (Math.log((Math.pow(255, 2)/mse)));
+		double PSNR = 10 * (Math.log10((Math.pow(255, 2)/mse)));
 		
 		return PSNR;
 	}
 	
 	public static double getEmbeddingCapacity(double embeddedSecretDataLength, double imageSize){
-		return (embeddedSecretDataLength/imageSize)*1000;
+		return (embeddedSecretDataLength/imageSize);
 	}
 }

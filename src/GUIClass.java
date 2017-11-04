@@ -16,6 +16,8 @@ import java.io.IOException;
 import java.util.regex.Pattern;
 import java.awt.event.ActionEvent;
 import javax.swing.JLabel;
+import javax.swing.JOptionPane;
+
 import java.awt.GridBagLayout;
 import java.awt.GridBagConstraints;
 import java.awt.Insets;
@@ -243,17 +245,31 @@ public class GUIClass extends javax.swing.JFrame {
 							outputImgDir+imgFileName+"_arc.bmp");
 					Double arcEmbeddingCap = MetricsCalculator.
 							getEmbeddingCapacity(arc.getEmbeddedSecretData().length(),
-									image.getHeight());
+									image.getHeight()*image.getWidth());
 					Double khoezPSNR = MetricsCalculator.getPSNR(imgDir, 
 							outputImgDir+imgFileName+"_khoez.bmp");
 					Double khoezEmbeddingCap = MetricsCalculator.
 							getEmbeddingCapacity(khodFaez.getEmbeddedSecretData().length(),
-									image.getHeight());
-					System.out.println(khodFaez.getEmbeddedSecretData().length()+" "+image.getHeight()+" "+arc.getEmbeddedSecretData().length());
+									image.getHeight()*image.getWidth());
+					JOptionPane.showMessageDialog(null,
+							"ARC PSNR : "+arcPSNR+"\n"+
+							"khoezPSNR: "+khoezPSNR+"\n"+
+							"arcEmbeddingCap  :   "+arcEmbeddingCap+" bpp\n"+
+							"khoezEmbeddingCap: "+khoezEmbeddingCap+" bpp\n"+
+							"arcEmbedded Secret Data Length  : "+
+							arc.getEmbeddedSecretData().length()+" bits\n"+
+							"khoezEmbedded Secret Data Length: "+
+							khodFaez.getEmbeddedSecretData().length()+" bits");
 					System.out.println("arcPSNR:   "+arcPSNR);
 					System.out.println("khoezPSNR: "+khoezPSNR);
-					System.out.println("arcEmbeddingCap:   "+arcEmbeddingCap);
-					System.out.println("khoezEmbeddingCap: "+khoezEmbeddingCap);
+					System.out.println();
+					System.out.println("arcEmbeddingCap :   "+arcEmbeddingCap+" bpp");
+					System.out.println("khoezEmbeddingCap: "+khoezEmbeddingCap+" bpp");
+					System.out.println();
+					System.out.println("arcEmbedded Secret Data Length: "
+										+ arc.getEmbeddedSecretData().length()+" bits");
+					System.out.println("khoezEmbedded Secret Data Length: "
+										+ khodFaez.getEmbeddedSecretData().length()+" bits");
 					System.out.println();
 					System.out.println("END");
 				} catch (IOException ex) {
